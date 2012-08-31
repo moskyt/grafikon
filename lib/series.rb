@@ -1,14 +1,15 @@
 module Grafikon
   class Series
-    attr_accessor :title
+    attr_accessor :title, :data, :mark, :color
     
     def initialize(chart)
       @title = nil
       @chart = chart
       @color = nil
+      @mark = nil
       @data = []
     end
-    
+        
     def check
       Array === @data or raise "Series data have to be an array"
       @data.each do |point|
@@ -18,12 +19,14 @@ module Grafikon
     end
     
     def as_pgfplots
-       %{
-        \\addplot[smooth,mark=#{@mark.to_s(:pgfplots)},#{@color.to_s(:pgfplots)}] plot coordinates {
+      check
+       s = %{
+        \\addplot[smooth,mark=#{@mark.as_pgfplots},color=#{@color.as_pgfplots}] plot coordinates {
           #{@data.map{|q| "(%.1f,%.3f)" % q} * "\n"}
-        };
-        \\addlegendentry{#{@title}}
-      }      
+        };        
+      }
+      s << "\\addlegendentry{#{@title}}" if @title   
+      s   
     end
     
   end
