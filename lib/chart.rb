@@ -81,6 +81,11 @@ module Grafikon
         \\end{axis}
         \\end{tikzpicture}      
       }
+      
+      # beautify a bit
+      s = s.split("\n").map(&:lstrip) * "\n"   
+      
+      # output
       if filename
         File.open(filename, 'w') do |f|
           f.print s

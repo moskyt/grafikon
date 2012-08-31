@@ -25,8 +25,8 @@ module Grafikon
           #{@data.map{|q| "(%.1f,%.3f)" % q} * "\n"}
         };        
       }
-      s << "\\addlegendentry{#{@title}}" if @title   
-      s   
+      s << "\\addlegendentry{#{@title}}" if @title
+      s
     end
     
   end
