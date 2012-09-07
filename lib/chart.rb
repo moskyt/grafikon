@@ -21,7 +21,7 @@ module Grafikon
       @width, @height = w, h
     end
     
-    def add(data, opts)
+    def add(data, opts = {})
       s = Series.new(self)
       s.title = opts[:title]
       s.data = data
