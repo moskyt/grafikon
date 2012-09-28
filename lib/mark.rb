@@ -30,7 +30,7 @@ module Grafikon
       when :cross, :plus
         '+'
       else
-        raise "Marker kind mismatch /#{@kind}/"
+        raise ArgumentError, "Marker kind mismatch /#{@kind}/"
       end
     end
   end

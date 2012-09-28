@@ -17,12 +17,12 @@ module Grafikon
       end
     
       def x_grid(x)
-        raise "Bad x-grid option [#{x}]" unless [nil, :minor, :major, :both].include?(x)
+        raise ArgumentError, "Bad x-grid option [#{x}]" unless [nil, :minor, :major, :both].include?(x)
         @x_grid = x
       end
 
       def y_grid(y)
-        raise "Bad y-grid option [#{y}]" unless [nil, :minor, :major, :both].include?(y)
+        raise ArgumentError, "Bad y-grid option [#{y}]" unless [nil, :minor, :major, :both].include?(y)
         @y_grid = y
       end
     
@@ -39,6 +39,10 @@ module Grafikon
         @axes[:y1].title = ytitle
       end
       
+      def y_limits(a,b)
+        @y_limits = [a,b]
+      end
+      
       def legend(x)
         @legend = x
       end
@@ -49,7 +53,11 @@ module Grafikon
     
       def add(data, opts = {})
         s = self.class.series_class.new(self)
-        s.title = opts[:title]
+        opts.each do |key, val|
+          if s.respond_to?(:"#{key}=")
+            s.send(:"#{key}=", val)
+          end
+        end
         s.data = data
         @series << s
       end
@@ -78,6 +86,19 @@ module Grafikon
         when nil
         else
           raise "? #{@legend}"
+        end
+        set
+      end
+      
+      def axis_options
+        set = []
+        case @y_limits
+        when nil, :auto
+        when Array
+          set << "ymin=#{@y_limits[0]}"
+          set << "ymax=#{@y_limits[1]}"
+        else 
+          raise "? #{@y_limits.inspect}"
         end
         set
       end
@@ -180,6 +201,7 @@ module Grafikon
         options += size_options
         options += legend_options
         options += grid_options
+        options += axis_options
         
         s = %{
           \\begin{tikzpicture}
@@ -214,6 +236,7 @@ module Grafikon
         options += size_options
         options += legend_options
         options += grid_options
+        options += axis_options
 
         s = %{
           \\begin{tikzpicture}

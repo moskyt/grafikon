@@ -1,15 +1,18 @@
 module Grafikon
   class Color
     
+    attr_reader :r, :g, :b
+    
     MAP = {
-      :red => [255, 0, 0],
-      :green => [0, 255, 0],
-      :blue => [0, 0, 255],
-      :orange => [255, 200, 0],
-      :magenta => [255, 0, 255],
-      :lightblue => [150, 150, 250],
-      :darkblue => [0, 0, 100],
-      :gray => [120, 120, 120],
+      :red => [1.0, 0, 0],
+      :green => [0, 1.0, 0],
+      :blue => [0, 0, 1.0],
+      :orange => [1.0, 0.5, 0],
+      :yellow => [1.0, 1.0, 0],
+      :magenta => [1.0, 0, 1.0],
+      :lightblue => [0.5, 0.5, 1.0],
+      :darkblue => [0, 0, 0.4],
+      :gray => [0.8, 0.8, 0.8],
     }
     
     def self.rgb(r, g, b)
@@ -20,6 +23,7 @@ module Grafikon
     
     def self.name(color_name)
       c = new
+      MAP[color_name.to_sym] or raise ArgumentError, "Color [#{color_name}] not known"
       c.set_rgb(*MAP[color_name.to_sym])
       c
     end
