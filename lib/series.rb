@@ -40,6 +40,30 @@ module Grafikon
         @data.map{|x| x[1]}
       end
       
+      def prune(n, remove_outliers = false)
+        return if @data.empty?
+        xmin, xmax = x_values.min, x_values.max
+        new_data = []
+        (0...n).each do |i|
+          x1 = xmin + (xmax - xmin) / n *  i 
+          x2 = xmin + (xmax - xmin) / n * (i+1) 
+          y  = @data.select{|w| x1 <= w[0] and w[0] <= x2}.map{|w| w[1]}
+          unless y.empty?
+            if remove_outliers
+              y.delete(y.min) unless y.count(y.min) > 0.1 * y.size
+              y.delete(y.max) unless y.count(y.max) > 0.1 * y.size
+            end
+            unless y.empty?
+              new_data << [x1, y.min]
+              new_data << [x2, y.max]
+              new_data << [x1, y.max]
+              new_data << [x2, y.min]
+            end
+          end
+        end
+        @data = new_data
+      end
+      
     end
     
     class Line < Generic

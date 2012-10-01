@@ -4,7 +4,8 @@ module Grafikon
     SET = [
       :circle_filled,
       :dcross, :x,
-      :cross, :plus
+      :cross, :plus,
+      :none
       ]
     LIST = [
       :circle_filled,
@@ -29,6 +30,8 @@ module Grafikon
         'x'
       when :cross, :plus
         '+'
+      when :none
+        'none'
       else
         raise ArgumentError, "Marker kind mismatch /#{@kind}/"
       end

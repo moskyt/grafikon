@@ -15,6 +15,10 @@ module Grafikon
       
         instance_eval(&block) if block_given?
       end
+      
+      def title(x)
+        @title = x
+      end
     
       def x_grid(x)
         raise ArgumentError, "Bad x-grid option [#{x}]" unless [nil, :minor, :major, :both].include?(x)
@@ -52,6 +56,7 @@ module Grafikon
       end
     
       def add(data, opts = {})
+        return false if data.empty?
         s = self.class.series_class.new(self)
         opts.each do |key, val|
           if s.respond_to?(:"#{key}=")
@@ -59,6 +64,9 @@ module Grafikon
           end
         end
         s.data = data
+        if o = opts[:prune]
+          s.prune(o[:n], !!o[:remove_outliers])
+        end
         @series << s
       end
     
