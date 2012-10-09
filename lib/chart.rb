@@ -12,8 +12,15 @@ module Grafikon
         @legend = :outer_next
         @xgrid = nil
         @ygrid = :major
+        @scale_only_axis = true
+        @x_ticks = nil
+        @extra_pgf_options = []
       
         instance_eval(&block) if block_given?
+      end
+      
+      def extra_pgf_options(*opts)
+        @extra_pgf_options += opts
       end
       
       def title(x)
@@ -51,8 +58,12 @@ module Grafikon
         @legend = x
       end
       
-      def size(w, h)
-        @width, @height = w, h
+      def x_ticks(set)
+        @x_ticks = set
+      end
+      
+      def size(w, h, scale_only_axis = true)
+        @width, @height, @scale_only_axis = w, h, scale_only_axis
       end
     
       def add(data, opts = {})
@@ -64,8 +75,8 @@ module Grafikon
           end
         end
         s.data = data
-        if o = opts[:prune]
-          s.prune(o[:n], !!o[:remove_outliers])
+        if block_given?
+          s.instance_eval(&Proc.new)
         end
         @series << s
       end
@@ -108,6 +119,10 @@ module Grafikon
         else 
           raise "? #{@y_limits.inspect}"
         end
+        if @x_ticks
+          set << "xtick={#{@x_ticks.map{|x| x[0].to_s}*','}}"
+          set << "xticklabels={#{@x_ticks.map{|x| x[1].to_s}*','}}"
+        end
         set
       end
       
@@ -138,14 +153,26 @@ module Grafikon
       end
       
       def size_options
-        options = []
-        if String === @width
-          options << "width=#{@width}"
-        elsif @width == :fill
-          options << "width=\\textwidth"  
+        options = @extra_pgf_options
+        options << "scale only axis" if @scale_only_axis
+        if @title and !@title.empty?
+          options << "title={#{@title}}"
         end
-        if String === @height
-          options << "height=#{@height}"
+        if @width
+          if String === @width
+            options << "width=#{@width}"
+          elsif @width == :fill 
+            options << "width=\\textwidth"  
+          else
+            raise ArgumentError, "Cannot understand width [#{@width}]"
+          end
+        end
+        if @height
+          if String === @height
+            options << "height=#{@height}"
+          else
+            raise ArgumentError, "Cannot understand height [#{@height}]"
+          end
         end
 
         options

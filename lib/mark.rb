@@ -2,13 +2,13 @@ module Grafikon
   class Mark
     #\usetikzlibrary{plotmarks}
     SET = [
-      :circle_filled,
+      :circle_filled, :Circle,
       :dcross, :x,
       :cross, :plus,
       :none
       ]
     LIST = [
-      :circle_filled,
+      :Circle,
       :dcross,
       :cross
       ]  
@@ -24,7 +24,7 @@ module Grafikon
     
     def as_pgfplots
       case @kind 
-      when :circle_filled
+      when :circle_filled, :Circle
         '*'
       when :dcross, :x
         'x'
