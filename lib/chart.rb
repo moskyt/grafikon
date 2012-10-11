@@ -121,7 +121,7 @@ module Grafikon
         end
         if @x_ticks
           set << "xtick={#{@x_ticks.map{|x| x[0].to_s}*','}}"
-          set << "xticklabels={#{@x_ticks.map{|x| x[1].to_s}*','}}"
+          set << "xticklabels={#{@x_ticks.map{|x| '{'+LaTeX::escape(x[1].to_s)+'}'}*','}}"
         end
         set
       end
@@ -160,9 +160,9 @@ module Grafikon
         end
         if @width
           if String === @width
-            options << "width=#{@width}"
+            options << "width={#{@width}}"
           elsif @width == :fill 
-            options << "width=\\textwidth"  
+            options << "width={\\textwidth}"
           else
             raise ArgumentError, "Cannot understand width [#{@width}]"
           end

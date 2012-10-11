@@ -1,7 +1,7 @@
 module Grafikon
   module Series
     class Generic
-      attr_accessor :data, :mark, :color, :pattern, :line_width
+      attr_accessor :data, :mark, :color, :pattern, :line_width, :mark_size
       attr_writer :title
     
       def initialize(chart)
@@ -22,7 +22,7 @@ module Grafikon
         Array === @data or raise ArgumentError, "Series data have to be an array"
         @data.each do |point|
           Array === point or raise ArgumentError, "Series data point has to be an array"
-          point.size == 2 or raise ArgumentError, "Series data point has to be an array with 2 elements"
+          point.size == 2 or point.size == 4 or raise ArgumentError, "Series data point has to be an array with 2 or 4 elements"
         end
         if Symbol === @color
           @color = Grafikon::Color::name(@color)
@@ -95,25 +95,56 @@ module Grafikon
         @connect = x
       end
       
+      def y_error_bars(opts = {})
+        @y_error_bars = {:measure => :fixed, :direction => :both}.merge(opts)
+      end
+      
       def as_pgfplots
         check
-        lw = if @line_width and @line_width > 0
-          "line width=#{@line_width}pt"
+        options = []
+        
+        options << "mark=#{@mark.as_pgfplots}"
+        options << "color=tempcolor#{self.object_id}"
+
+        if @line_width and @line_width > 0
+          options << "line width=#{@line_width}pt"
         else
-          'only marks'
+          options << 'only marks'
         end
-        cx = case @connect
+
+        if @mark_size and @mark_size > 0
+          options << "mark size=#{@mark_size}pt"
+        end
+                
+        
+        case @connect
         when :smooth
           ""
         when :straight
-          "straight plot,"
+          options << "straight plot"
         when :const
-          "const plot,"
+          options << "const plot"
         end
+        
+        eb = ""
+        if @y_error_bars
+          d = case @y_error_bars[:direction]
+          when :minus
+            'minus'
+          when :plus
+            'plus'
+          when :both
+            'both'
+          else
+            raise "Invalid y error bar direction [#{@y_error_bars[:direction]}]"
+          end
+          eb = %{[error bars/.cd,y dir=#{d}]}
+        end
+        
         s = %{
           \\definecolor{tempcolor#{self.object_id}}{rgb}{#{color.r},#{color.g},#{color.b}}
-          \\addplot[#{cx}mark=#{@mark.as_pgfplots},color=tempcolor#{self.object_id},#{lw}] plot coordinates {
-            #{@data.map{|q| "(%s,%f)" % [q[0].to_s, q[1].to_f]} * "\n"}
+          \\addplot[#{options * ','}] plot#{eb} coordinates {
+            #{@data.map{|q| "(%s,%f) +- (%f,%f)" % [q[0].to_s, q[1].to_f, q[2].to_f, q[3].to_f]} * "\n"}
           };        
         }
         s
