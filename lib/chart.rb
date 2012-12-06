@@ -15,6 +15,8 @@ module Grafikon
         @scale_only_axis = true
         @x_ticks = nil
         @extra_pgf_options = []
+        # extra_pgf_options "yticklabel style={/pgf/number format/fixed}"
+        extra_pgf_options "scaled ticks=false"
       
         instance_eval(&block) if block_given?
       end
@@ -262,9 +264,10 @@ module Grafikon
         Series::Line
       end
 
-      def pgfplots(filename = nil)
+      def pgfplots(filename = nil, opts = {})
         autocomplete
         options = []
+        options << "compat=newest"
         options << "xlabel={#{LaTeX::escape @axes[:x1].title}}"
         options << "ylabel={#{LaTeX::escape @axes[:y1].title}}"
 
@@ -273,8 +276,15 @@ module Grafikon
         options += grid_options
         options += axis_options
 
-        s = %{
-          \\begin{tikzpicture}
+        if opts[:force_width]
+          s = "\\resizebox{#{opts[:force_width]}}{!}{%
+          \\begin{tikzpicture}%"
+        else
+          s = %{
+            \\begin{tikzpicture}}
+        end
+
+        s << %{
           \\begin{axis}[#{options * ","}]
         }
         @series.each do |series|
@@ -283,9 +293,9 @@ module Grafikon
         end
         s << %{
           \\end{axis}
-          \\end{tikzpicture}      
-        }
-      
+          \\end{tikzpicture}}
+        s << "}" if opts[:force_width]
+        s << "\n"
         output(filename, s)
       end
     end

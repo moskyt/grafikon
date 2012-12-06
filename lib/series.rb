@@ -144,7 +144,7 @@ module Grafikon
         s = %{
           \\definecolor{tempcolor#{self.object_id}}{rgb}{#{color.r},#{color.g},#{color.b}}
           \\addplot[#{options * ','}] plot#{eb} coordinates {
-            #{@data.map{|q| "(%s,%f) +- (%f,%f)" % [q[0].to_s, q[1].to_f, q[2].to_f, q[3].to_f]} * "\n"}
+            #{@data.map{|q| "(%s,%.5e) +- (%f,%.5e)" % [q[0].to_s, q[1].to_f, q[2].to_f, q[3].to_f]} * "\n"}
           };        
         }
         s
@@ -161,7 +161,7 @@ module Grafikon
         s = %{
           \\definecolor{tempcolor#{self.object_id}}{rgb}{#{color.r},#{color.g},#{color.b}}
           \\addplot[color=black,fill=tempcolor#{self.object_id}#{p}] coordinates {
-            #{@data.map{|q| "(%s,%f)" % [q[0].to_s, q[1].to_f]} * "\n"}
+            #{@data.map{|q| "(%s,%.5e)" % [q[0].to_s, q[1].to_f]} * "\n"}
           };        
         }
         s
