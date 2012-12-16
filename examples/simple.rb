@@ -6,7 +6,7 @@ b = (1..6).map{|x| [x,x**1.5]}
 puts(Grafikon::Chart::Line.new do
   size :fill, '8cm'
   add a, :title => 'linear', :mark => :x
-  add a, :title => 'linear-and-half', :color => :gray
+  add b, :title => 'linear-and-half', :color => :gray
 end.pgfplots)
 
 puts(Grafikon::Chart::Line.new do

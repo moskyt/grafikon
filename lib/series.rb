@@ -12,6 +12,8 @@ module Grafikon
         @mark = nil
         @line_width = 1
         @data = []
+        @x_error_bars = nil
+        @y_error_bars = nil
       end
       
       def title
@@ -141,12 +143,21 @@ module Grafikon
           eb = %{[error bars/.cd,y dir=#{d}]}
         end
         
-        s = %{
-          \\definecolor{tempcolor#{self.object_id}}{rgb}{#{color.r},#{color.g},#{color.b}}
-          \\addplot[#{options * ','}] plot#{eb} coordinates {
-            #{@data.map{|q| "(%s,%.5e) +- (%f,%.5e)" % [q[0].to_s, q[1].to_f, q[2].to_f, q[3].to_f]} * "\n"}
-          };        
-        }
+        if @y_error_bars or @x_error_bars
+          s = %{
+            \\definecolor{tempcolor#{self.object_id}}{rgb}{#{color.r},#{color.g},#{color.b}}
+            \\addplot[#{options * ','}] plot#{eb} coordinates {
+              #{@data.map{|q| "(%s,%.5e) +- (%f,%.5e)" % [q[0].to_s, q[1].to_f, q[2].to_f, q[3].to_f]} * "\n"}
+            };        
+          }
+        else
+          s = %{
+            \\definecolor{tempcolor#{self.object_id}}{rgb}{#{color.r},#{color.g},#{color.b}}
+            \\addplot[#{options * ','}] plot#{eb} coordinates {
+              #{@data.map{|q| "(%s,%.5e)" % [q[0].to_s, q[1].to_f]} * "\n"}
+            };        
+          }
+        end
         s
       end
     
