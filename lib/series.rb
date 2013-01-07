@@ -1,7 +1,7 @@
 module Grafikon
   module Series
     class Generic
-      attr_accessor :data, :mark, :color, :pattern, :line_width, :mark_size
+      attr_accessor :data, :mark, :color, :pattern, :line_width, :mark_size, :axis
       attr_writer :title
     
       def initialize(chart)
@@ -14,6 +14,7 @@ module Grafikon
         @data = []
         @x_error_bars = nil
         @y_error_bars = nil
+        @axis = :primary
       end
       
       def title
@@ -106,7 +107,7 @@ module Grafikon
         options = []
         
         options << "mark=#{@mark.as_pgfplots}"
-        options << "color=tempcolor#{self.object_id}"
+        options << "color=rgbcolor%04d%04d%04d" % [color.r*1000, color.g*1000, color.b*1000]
 
         if @line_width and @line_width > 0
           options << "line width=#{@line_width}pt"
@@ -145,14 +146,12 @@ module Grafikon
         
         if @y_error_bars or @x_error_bars
           s = %{
-            \\definecolor{tempcolor#{self.object_id}}{rgb}{#{color.r},#{color.g},#{color.b}}
             \\addplot[#{options * ','}] plot#{eb} coordinates {
               #{@data.map{|q| "(%s,%.5e) +- (%f,%.5e)" % [q[0].to_s, q[1].to_f, q[2].to_f, q[3].to_f]} * "\n"}
             };        
           }
         else
           s = %{
-            \\definecolor{tempcolor#{self.object_id}}{rgb}{#{color.r},#{color.g},#{color.b}}
             \\addplot[#{options * ','}] plot#{eb} coordinates {
               #{@data.map{|q| "(%s,%.5e)" % [q[0].to_s, q[1].to_f]} * "\n"}
             };        
@@ -167,10 +166,9 @@ module Grafikon
       
       def as_pgfplots
         check
-        p = ""
+        p = "color=rgbcolor%04d%04d%04d" % [color.r*1000, color.g*1000, color.b*1000]
         p = "," + @pattern.as_pgfplots if @pattern
         s = %{
-          \\definecolor{tempcolor#{self.object_id}}{rgb}{#{color.r},#{color.g},#{color.b}}
           \\addplot[color=black,fill=tempcolor#{self.object_id}#{p}] coordinates {
             #{@data.map{|q| "(%s,%.5e)" % [q[0].to_s, q[1].to_f]} * "\n"}
           };        

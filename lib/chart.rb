@@ -6,19 +6,26 @@ module Grafikon
         @title = nil
         @axes = {
           :x1 => Axis.new(self),
-          :y1 => Axis.new(self) 
+          :y1 => Axis.new(self),
+          :y2 => Axis.new(self) 
         }
         @series = []
         @legend = :outer_next
-        @xgrid = nil
-        @ygrid = :major
+        @x_grid = nil
+        @y_grid = :major
         @scale_only_axis = true
         @x_ticks = nil
         @extra_pgf_options = []
         # extra_pgf_options "yticklabel style={/pgf/number format/fixed}"
         extra_pgf_options "scaled ticks=false"
+        
+        @color_pool = []
       
         instance_eval(&block) if block_given?
+      end
+      
+      def add_color(r,g,b)
+        @color_pool << [[r,g,b]]
       end
       
       def extra_pgf_options(*opts)
@@ -39,9 +46,10 @@ module Grafikon
         @y_grid = y
       end
     
-      def axes(xtitle, ytitle)
+      def axes(xtitle, ytitle, y2title = nil)
         x_axis(xtitle)
         y_axis(ytitle)
+        y2_axis(y2title)
       end
       
       def x_axis(xtitle)
@@ -50,6 +58,10 @@ module Grafikon
 
       def y_axis(ytitle)
         @axes[:y1].title = ytitle
+      end
+
+      def y2_axis(y2title)
+        @axes[:y2].title = y2title
       end
       
       def y_limits(a,b)
@@ -95,6 +107,18 @@ module Grafikon
         add(data, opts)
       end
     
+      def add_rdiff(base, other, opts = {})
+        data = []
+        k1 = base.map{|x| x[0]}
+        k2 = other.map{|x| x[0]}
+        (k1 & k2).each do |x|
+          v1 = base.find{|q| q[0] == x}[1]
+          v2 = other.find{|q| q[0] == x}[1]
+          data << [x, (v2/v1-1)*100]
+        end
+        add(data, opts)
+      end
+    
     protected
     
       def legend_options
@@ -131,24 +155,24 @@ module Grafikon
       def grid_options
         set = []
 
-        case @xgrid
+        case @x_grid
         when nil
         when :minor, :both
           set << "xminorgrids=true"
         when :major, :both
           set << "ymajorgrids=true"
         else
-          raise "? #{@xgrid}"
+          raise "? #{@x_grid}"
         end
 
-        case @ygrid
+        case @y_grid
         when nil
         when :minor, :both
           set << "yminorgrids=true"
         when :major, :both
           set << "ymajorgrids=true"
         else
-          raise "? #{@ygrid}"
+          raise "? #{@y_grid}"
         end
 
         set
@@ -269,7 +293,6 @@ module Grafikon
         options = []
         options << "compat=newest"
         options << "xlabel={#{LaTeX::escape @axes[:x1].title}}"
-        options << "ylabel={#{LaTeX::escape @axes[:y1].title}}"
 
         options += size_options
         options += legend_options
@@ -283,16 +306,46 @@ module Grafikon
           s = %{
             \\begin{tikzpicture}}
         end
-
-        s << %{
-          \\begin{axis}[#{options * ","}]
-        }
+        
         @series.each do |series|
-          s << series.as_pgfplots
-          s << "\\addlegendentry{#{series.title}}" if series.title and @legend
+          series.check
+          s << %{\\definecolor{rgbcolor%04d%04d%04d}{rgb}{%.3f,%.3f,%.3f}} % [series.color.r*1000, series.color.g*1000, series.color.b*1000, series.color.r, series.color.g, series.color.b]
         end
+
+        pseries, sseries = * @series.partition{|x| x.axis == :primary}
+        only_primary = sseries.empty?
+        [[pseries, :y1], [sseries, :y2]].each do |series_list, axis|
+          secondary = (axis == :y2)
+          if series_list.any?
+            options_local = options + ["ylabel={#{LaTeX::escape @axes[axis].title}}"]
+            options_local << "axis y line*=left" unless secondary
+            options_local << "axis y line*=right" << "axis x line=none" if secondary
+            s << %{
+              \\begin{axis}[#{options_local * ","}]
+            }
+            
+            if secondary and !only_primary
+              pseries.each_with_index do |series, i|
+                s << "\\addlegendimage{/pgfplots/refstyle=refplot#{i}}\\addlegendentry{#{series.title || "---"} }\n"
+              end
+            end if @legend
+                          
+            series_list.each_with_index do |series, i|
+              s << series.as_pgfplots
+              if only_primary or secondary
+                s << "\\addlegendentry{#{series.title || "---"}}\n"
+              elsif !secondary
+                s << "\\label{refplot#{i}}\n"
+              end
+            end if @legend
+            
+            s << %{
+              \\end{axis}
+            }
+          end
+        end
+        
         s << %{
-          \\end{axis}
           \\end{tikzpicture}}
         s << "}" if opts[:force_width]
         s << "\n"
