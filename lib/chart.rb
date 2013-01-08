@@ -318,7 +318,7 @@ module Grafikon
           secondary = (axis == :y2)
           if series_list.any?
             options_local = options + ["ylabel={#{LaTeX::escape @axes[axis].title}}"]
-            options_local << "axis y line*=left" unless secondary
+            options_local << "axis y line*=left" if !only_primary and !secondary
             options_local << "axis y line*=right" << "axis x line=none" if secondary
             s << %{
               \\begin{axis}[#{options_local * ","}]
