@@ -97,24 +97,36 @@ module Grafikon
     
       def add_diff(base, other, opts = {})
         data = []
+        m = opts.delete(:multiplier) || 1.0
+        t = opts.delete(:tolerance) || 1e-5
         k1 = base.map{|x| x[0]}
         k2 = other.map{|x| x[0]}
-        (k1 & k2).each do |x|
-          v1 = base.find{|q| q[0] == x}[1]
-          v2 = other.find{|q| q[0] == x}[1]
-          data << [x, v2 - v1]
+        (k1 + k2).sort.each do |x|
+          v1 = base.find{ |q| (q[0]-x).abs < t}
+          v2 = other.find{|q| (q[0]-x).abs < t}
+          if v1 and v2
+            v1 = v1[1]
+            v2 = v2[1]
+            data << [x, (v2 - v1)*m]
+          end
         end
         add(data, opts)
       end
     
       def add_rdiff(base, other, opts = {})
         data = []
+        m = opts.delete(:multiplier) || 100.0
+        t = opts.delete(:tolerance) || 1e-5
         k1 = base.map{|x| x[0]}
         k2 = other.map{|x| x[0]}
-        (k1 & k2).each do |x|
-          v1 = base.find{|q| q[0] == x}[1]
-          v2 = other.find{|q| q[0] == x}[1]
-          data << [x, (v2/v1-1)*100]
+        (k1 + k2).sort.each do |x|
+          v1 = base.find{ |q| (q[0]-x).abs < t}
+          v2 = other.find{|q| (q[0]-x).abs < t}
+          if v1 and v2
+            v1 = v1[1]
+            v2 = v2[1]
+            data << [x, (v2/v1-1)*m]
+          end
         end
         add(data, opts)
       end

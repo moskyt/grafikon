@@ -6,14 +6,14 @@ module Grafikon
     MAP = {
       :red => [1.0, 0, 0],
       :green => [0, 1.0, 0],
-      :darkgreen => [0, 0.3, 0],
-      :lightgreen => [0.4, 0.7, 0.4],
       :blue => [0, 0, 1.0],
       :orange => [1.0, 0.5, 0],
+      :darkgreen => [0, 0.3, 0],
       :yellow => [1.0, 1.0, 0],
-      :magenta => [1.0, 0, 1.0],
-      :lightblue => [0.5, 0.5, 1.0],
       :darkblue => [0, 0, 0.4],
+      :magenta => [1.0, 0, 1.0],
+      :lightgreen => [0.4, 0.7, 0.4],
+      :lightblue => [0.5, 0.5, 1.0],
       :gray => [0.8, 0.8, 0.8],
     }
     
