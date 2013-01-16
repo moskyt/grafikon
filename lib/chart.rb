@@ -94,16 +94,33 @@ module Grafikon
         end
         @series << s
       end
+      
+      def interpolate_in(xx, yy, x)
+        return nil if xx.min > x
+        return nil if xx.max < x
+        i1 = xx.index {|q| q >= x}
+        i2 = xx.rindex{|q| q <= x}
+        return [x, yy[i1]] if (i1 == i2)
+        x1, y1 = xx[i1], yy[i1]
+        x2, y2 = xx[i2], yy[i2]
+        [x, y1 + (x - x1) * (y2 - y1) / (x2 - x1)]
+      end
     
       def add_diff(base, other, opts = {})
         data = []
         m = opts.delete(:multiplier) || 1.0
         t = opts.delete(:tolerance) || 1e-5
+        int = opts.delete(:interpolate)
         k1 = base.map{|x| x[0]}
         k2 = other.map{|x| x[0]}
         (k1 + k2).sort.each do |x|
-          v1 = base.find{ |q| (q[0]-x).abs < t}
-          v2 = other.find{|q| (q[0]-x).abs < t}
+          if int
+            v1 = interpolate_in(base.transpose.first, base.transpose.last, x)
+            v2 = interpolate_in(other.transpose.first, other.transpose.last, x)
+          else
+            v1 = base.find{ |q| (q[0]-x).abs < t}
+            v2 = other.find{|q| (q[0]-x).abs < t}
+          end
           if v1 and v2
             v1 = v1[1]
             v2 = v2[1]
@@ -117,11 +134,17 @@ module Grafikon
         data = []
         m = opts.delete(:multiplier) || 100.0
         t = opts.delete(:tolerance) || 1e-5
+        int = opts.delete(:interpolate)
         k1 = base.map{|x| x[0]}
         k2 = other.map{|x| x[0]}
         (k1 + k2).sort.each do |x|
-          v1 = base.find{ |q| (q[0]-x).abs < t}
-          v2 = other.find{|q| (q[0]-x).abs < t}
+          if int
+            v1 = interpolate_in(base.transpose.first, base.transpose.last, x)
+            v2 = interpolate_in(other.transpose.first, other.transpose.last, x)
+          else
+            v1 = base.find{ |q| (q[0]-x).abs < t}
+            v2 = other.find{|q| (q[0]-x).abs < t}
+          end
           if v1 and v2
             v1 = v1[1]
             v2 = v2[1]
@@ -139,7 +162,7 @@ module Grafikon
         when :outer_next
           set << "legend pos=outer north east"
         when :outer_below
-          set << "legend style={at={(0.5,-0.15)},anchor=north,legend columns=-1}"
+          set << "legend style={at={(0.5,-0.25)},anchor=north,legend columns=-1}"
         when nil
         else
           raise "? #{@legend}"
@@ -336,20 +359,20 @@ module Grafikon
               \\begin{axis}[#{options_local * ","}]
             }
             
-            if secondary and !only_primary
+            if @legend and secondary and !only_primary
               pseries.each_with_index do |series, i|
                 s << "\\addlegendimage{/pgfplots/refstyle=refplot#{i}}\\addlegendentry{#{series.title || "---"} }\n"
               end
-            end if @legend
+            end
                           
             series_list.each_with_index do |series, i|
               s << series.as_pgfplots
-              if only_primary or secondary
+              if (only_primary or secondary) and @legend
                 s << "\\addlegendentry{#{series.title || "---"}}\n"
-              elsif !secondary
+              elsif !secondary and @legend
                 s << "\\label{refplot#{i}}\n"
               end
-            end if @legend
+            end
             
             s << %{
               \\end{axis}
