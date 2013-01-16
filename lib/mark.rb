@@ -64,7 +64,7 @@ module Grafikon
         '|'
       when :horizontal
         '-'
-      when :circle, :o,
+      when :circle, :o
         'o'
       when :circle_cross
         'oplus'
