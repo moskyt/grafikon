@@ -24,6 +24,34 @@ module Grafikon
         instance_eval(&block) if block_given?
       end
       
+      def gnuplot(options)
+        series_files = @series.map(&:csv_temp_file)
+        series_list = []
+        @series.each_with_index do |s,i|
+          s.check
+          series_list << %{"#{series_files[i].path}" using 1:2 #{s.gnuplot_options}}
+        end
+
+        plot_string = ""
+        case options[:format]
+        when :png
+          plot_string << "set terminal png medium size 640,480\n"
+        end
+        plot_string << "plot #{series_list * ','}\n"
+        if options[:output]
+          plot_string = %{set output "#{options[:output]}"\n} + plot_string
+          p = Tempfile.new('pfile')
+          p.write plot_string
+          p.close
+          `gnuplot #{p.path}`
+        end
+        plot_string
+      end
+      
+      def gnuplot_plot_type
+        "linespoints"
+      end
+      
       def add_color(r,g,b)
         @color_pool << [[r,g,b]]
       end
@@ -344,7 +372,7 @@ module Grafikon
         
         @series.each do |series|
           series.check
-          s << %{\\definecolor{rgbcolor%04d%04d%04d}{rgb}{%.3f,%.3f,%.3f}} % [series.color.r*1000, series.color.g*1000, series.color.b*1000, series.color.r, series.color.g, series.color.b]
+          s << %{\n\\definecolor{rgbcolor%04d%04d%04d}{rgb}{%.3f,%.3f,%.3f}} % [series.color.r*1000, series.color.g*1000, series.color.b*1000, series.color.r, series.color.g, series.color.b]
         end
 
         pseries, sseries = * @series.partition{|x| x.axis == :primary}

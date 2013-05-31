@@ -3,11 +3,17 @@ require_relative '../lib/grafikon'
 a = (1..6).map{|x| [x,x]}
 b = (1..6).map{|x| [x,x**1.5]}
 
-puts(Grafikon::Chart::Line.new do
+c = Grafikon::Chart::Line.new do
   size :fill, '8cm'
   add a, :title => 'linear', :mark => :x
   add b, :title => 'linear-and-half', :color => :gray
-end.pgfplots)
+end
+
+puts(c.pgfplots)
+
+puts(c.gnuplot(:format => :png))
+
+c.gnuplot(:format => :png, :output => 'x.png')
 
 puts(Grafikon::Chart::Line.new do
   axes 'x-value', 'y-value'

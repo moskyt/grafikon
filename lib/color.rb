@@ -44,5 +44,8 @@ module Grafikon
       "{rgb:red,#{@r};green,#{@g};blue,#{@b}}"
     end
     
+    def as_gnuplot
+      "rgb \"#%02x%02x%02x\"" % [@r*255, @g*255, @b*255]
+    end
   end
 end

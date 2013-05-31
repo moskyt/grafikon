@@ -34,6 +34,37 @@ module Grafikon
           @mark = Grafikon::Mark::new(@mark)
         end
       end
+      
+      def gnuplot_options
+        opts = []
+        
+        if @line_width && @line_width > 0 && @mark
+          opts << "with linespoints"
+        elsif @line_width && @line_width > 0
+          opts << "with lines"
+        else
+          opts << "with points"
+        end
+        
+        opts << "lc #{@color.as_gnuplot}"
+        opts << "title \"#{@title}\""      
+        
+        opts * " "
+      end
+      
+      def csv_temp_file
+        require 'tempfile'
+
+        file = Tempfile.new('series_csv')
+        
+        @data.each do |x,y|
+          file.write "%.5e %.5e\n" % [x,y]
+        end
+        
+        file.close
+        
+        file
+      end
 
       def x_values
         @data.map{|x| x[0]}
