@@ -25,6 +25,7 @@ module Grafikon
       end
       
       def gnuplot(options)
+        @series.each(&:check)
         series_files = @series.map(&:csv_temp_file)
         series_list = []
         @series.each_with_index do |s,i|
@@ -36,6 +37,11 @@ module Grafikon
         case options[:format]
         when :png
           plot_string << "set terminal png medium size 640,480\n"
+        when :eps  
+          plot_string << "set terminal postscript eps enhanced color\n"
+        end
+        if @title
+          plot_string << "set title \"#{@title}\"\n"
         end
         plot_string << "plot #{series_list * ','}\n"
         if options[:output]
@@ -372,6 +378,7 @@ module Grafikon
         
         @series.each do |series|
           series.check
+          # series.sort
           s << %{\n\\definecolor{rgbcolor%04d%04d%04d}{rgb}{%.3f,%.3f,%.3f}} % [series.color.r*1000, series.color.g*1000, series.color.b*1000, series.color.r, series.color.g, series.color.b]
         end
 

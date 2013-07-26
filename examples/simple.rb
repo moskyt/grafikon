@@ -15,6 +15,10 @@ puts(c.gnuplot(:format => :png))
 
 c.gnuplot(:format => :png, :output => 'x.png')
 
+puts(c.gnuplot(:format => :eps))
+
+c.gnuplot(:format => :eps, :output => 'x.eps')
+
 puts(Grafikon::Chart::Line.new do
   axes 'x-value', 'y-value'
   size :fill, '8cm'
