@@ -6,3 +6,13 @@ require_relative 'mark'
 require_relative 'series'
 
 require 'guttapercha'
+
+module Grafikon
+
+  def gnuplot_escape(s)
+    s.gsub("_", "\\_")
+    s.gsub("\"", "\\\"")
+  end
+  
+
+end
