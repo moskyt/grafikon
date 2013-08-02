@@ -9,10 +9,9 @@ require 'guttapercha'
 
 module Grafikon
 
-  def gnuplot_escape(s)
+  def self.gnuplot_escape(s)
     s.gsub("_", "\\_")
     s.gsub("\"", "\\\"")
   end
-  
 
 end
