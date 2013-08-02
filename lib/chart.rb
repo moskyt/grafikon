@@ -42,7 +42,7 @@ module Grafikon
           plot_string << "set terminal postscript eps enhanced color\n"
         end
         if @title
-          plot_string << "set title \"#{Grafikon::gnuplot_escape @title}\"\n"
+          plot_string << "set title '#{Grafikon::gnuplot_escape @title}' noenhanced\n"
         end
 
         pseries, sseries = * @series.partition{|x| x.axis == :primary}
@@ -51,13 +51,13 @@ module Grafikon
           plot_string << "set y2tics\n"
         end
         if @axes[:x1].title
-          plot_string << "set xlabel \"#{Grafikon::gnuplot_escape @axes[:x1].title}\"\n"
+          plot_string << "set xlabel \"#{Grafikon::gnuplot_escape @axes[:x1].title}\" noenhanced\n"
         end
         if @axes[:y1].title
-          plot_string << "set ylabel \"#{Grafikon::gnuplot_escape @axes[:y1].title}\"\n"
+          plot_string << "set ylabel \"#{Grafikon::gnuplot_escape @axes[:y1].title}\" noenhanced\n"
         end
         if @axes[:y2].title
-          plot_string << "set y2label \"#{Grafikon::gnuplot_escape @axes[:y2].title}\"\n"
+          plot_string << "set y2label \"#{Grafikon::gnuplot_escape @axes[:y2].title}\" noenhanced\n"
         end
         plot_string << "plot #{series_list * ','}\n"
         if options[:output]
