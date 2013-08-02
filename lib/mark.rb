@@ -52,6 +52,45 @@ module Grafikon
       new(LIST[n % LIST.size])
     end
     
+    def none?
+      @kind == :none
+    end
+    
+    def as_gnuplot
+      case @kind
+      when :none
+        -1
+      when :cross, :plus
+        1
+      when :dcross, :x
+        2
+      when :asterisk, :star
+        3
+      when :circle
+        6
+      when :Circle, :circle_filled
+        7
+      when :triangle 
+        8
+      when :Triangle, :triangle_filled
+        9
+      when :pentagon
+        14
+      when :Pentagon, :pentagon_filled
+        15
+      when :square
+        4
+      when :Square, :square_filled
+        5
+      when :diamond
+        12
+      when :Diamond, :diamond_filled
+        13
+      else
+        7
+      end
+    end
+    
     def as_pgfplots
       case @kind 
       when :circle_filled, :Circle
@@ -93,7 +132,8 @@ module Grafikon
       when :star
         'star'
       else
-        raise ArgumentError, "Marker kind mismatch /#{@kind}/"
+        #raise ArgumentError, "Marker kind mismatch /#{@kind}/"
+        '*'
       end
     end
   end

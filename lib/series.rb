@@ -38,7 +38,7 @@ module Grafikon
       def gnuplot_options
         opts = []
         
-        if @line_width && @line_width > 0 && @mark
+        if @line_width && @line_width > 0 && @mark && !@mark.none?
           opts << "with linespoints"
         elsif @line_width && @line_width > 0
           opts << "with lines"
@@ -47,7 +47,9 @@ module Grafikon
         end
         
         opts << "lc #{@color.as_gnuplot}"
-        opts << "title \"#{@title}\""      
+        opts << "pt #{@mark.as_gnuplot}" unless @mark.none?
+        opts << "title \"#{@title}\""  
+        opts << "axes x1y2" if @axis == :secondary    
         
         opts * " "
       end
@@ -131,6 +133,11 @@ module Grafikon
       
       def y_error_bars(opts = {})
         @y_error_bars = {:measure => :fixed, :direction => :both}.merge(opts)
+      end
+      
+      def check
+        super
+        @data = @data.sort_by{|x| x.first}
       end
       
       def as_pgfplots

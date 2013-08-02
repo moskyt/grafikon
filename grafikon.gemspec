@@ -1,12 +1,12 @@
 Gem::Specification.new do |s|
   s.name        = "grafikon"
-  s.version     = '0.3.5'
+  s.version     = '0.3.10'
   s.platform    = Gem::Platform::RUBY
   s.authors     = ["Frantisek Havluj"]
   s.email       = ["haf@ujv.cz"]
   s.homepage    = "http://orf.ujv.cz"
   s.summary     = "Grafikon"
-  s.description = "Simple plotting tool producing Pgfplots source"
+  s.description = "Simple plotting tool producing Pgfplots source or Gnuplot script"
   
   s.add_dependency('guttapercha', '~>0.1.7')
 

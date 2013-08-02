@@ -24,7 +24,13 @@ module Grafikon
         instance_eval(&block) if block_given?
       end
       
+      def gnuplot_escape(s)
+        s.gsub("_", "\\_")
+        s.gsub("\"", "\\\"")
+      end
+      
       def gnuplot(options)
+        autocomplete
         @series.each(&:check)
         series_files = @series.map(&:csv_temp_file)
         series_list = []
@@ -42,6 +48,21 @@ module Grafikon
         end
         if @title
           plot_string << "set title \"#{@title}\"\n"
+        end
+
+        pseries, sseries = * @series.partition{|x| x.axis == :primary}
+
+        unless sseries.empty?
+          plot_string << "set y2tics\n"
+        end
+        if @axes[:x1].title
+          plot_string << "set xlabel \"#{gnuplot_escape @axes[:x1].title}\"\n"
+        end
+        if @axes[:y1].title
+          plot_string << "set ylabel \"#{gnuplot_escape @axes[:y1].title}\"\n"
+        end
+        if @axes[:y2].title
+          plot_string << "set y2label \"#{gnuplot_escape @axes[:y2].title}\"\n"
         end
         plot_string << "plot #{series_list * ','}\n"
         if options[:output]
