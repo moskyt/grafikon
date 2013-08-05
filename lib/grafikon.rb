@@ -1,9 +1,10 @@
-require_relative 'axis'
-require_relative 'chart'
-require_relative 'color'
-require_relative 'pattern'
-require_relative 'mark'
-require_relative 'series'
+require "grafikon/version"
+require "grafikon/axis"
+require "grafikon/chart"
+require "grafikon/color"
+require "grafikon/pattern"
+require "grafikon/mark"
+require "grafikon/series"
 
 require 'guttapercha'
 
