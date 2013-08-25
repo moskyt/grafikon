@@ -6,6 +6,14 @@ require 'grafikon'
 
 class TestBasic < MiniTest::Unit::TestCase
 
+  def test_chart_block
+    a = (1..6).map{|x| [x,x]}
+
+    Grafikon::Chart::Line.new do
+      add a, :title => 'linear', :mark => :x
+    end.gnuplot(:format => :png, :output => 'test_chart_block.png')
+  end
+
   def test_line_chart
 
     a = (1..6).map{|x| [x,x]}
