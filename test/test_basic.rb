@@ -13,6 +13,22 @@ class TestBasic < MiniTest::Unit::TestCase
       add a, :title => 'linear', :mark => :x
     end.gnuplot(:format => :png, :output => 'test_chart_block.png')
   end
+  
+  def test_line_diff
+    a = (1..6).map{|x| [x,x]}
+    b = (1..6).map{|x| [x,x ** 1.5]}
+
+    c = Grafikon::Chart::Line.new do
+      title "an exam_ple"
+      size :fill, '8cm'
+      add a, :title => 'linear', :mark => :x
+      add b, :title => 'linear-and-half', :color => :gray, :mark => :Circle
+      add_diff a, b, :title => 'difference', :mark => :Square, :color => :red, :axis => :secondary
+    end
+
+    # pgfplots file
+    c.pgfplots('test_line_diff.tex')
+  end
 
   def test_line_chart
 

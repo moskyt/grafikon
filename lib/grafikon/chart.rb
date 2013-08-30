@@ -13,6 +13,8 @@ module Grafikon
         @legend = :outer_next
         @x_grid = nil
         @y_grid = :major
+	@x_limits = nil
+	@y_limits = nil
         @scale_only_axis = true
         @x_ticks = nil
         @extra_pgf_options = []

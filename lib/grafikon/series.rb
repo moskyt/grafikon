@@ -10,6 +10,7 @@ module Grafikon
         @color = nil
         @pattern = nil
         @mark = nil
+	@mark_size = 3
         @line_width = 1
         @data = []
         @x_error_bars = nil
