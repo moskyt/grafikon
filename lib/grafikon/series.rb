@@ -1,7 +1,7 @@
 module Grafikon
   module Series
     class Generic
-      attr_accessor :data, :mark, :color, :pattern, :line_width, :mark_size, :axis
+      attr_accessor :data, :mark, :color, :pattern, :line_width, :line_type, :mark_size, :axis
       attr_writer :title
     
       def initialize(chart)
@@ -12,6 +12,7 @@ module Grafikon
         @mark = nil
 	@mark_size = 3
         @line_width = 1
+        @line_type = nil
         @data = []
         @x_error_bars = nil
         @y_error_bars = nil
@@ -45,6 +46,13 @@ module Grafikon
           opts << "with lines"
         else
           opts << "with points"
+        end
+        
+        if @line_width && @line_width > 0
+          opts << "lw #{@line_width}"
+          if @line_type
+            opts << "lt #{@line_type}"
+          end
         end
         
         opts << "lc #{@color.as_gnuplot}"

@@ -39,9 +39,9 @@ module Grafikon
         plot_string = ""
         case options[:format]
         when :png
-          plot_string << "set terminal png medium size 640,480\n"
+          plot_string << "set terminal png enhanced medium size 640,480\n"
         when :eps
-          plot_string << "set terminal postscript eps enhanced color\n"
+          plot_string << "set terminal postscript eps enhanced color dashed\n"
         end
         if @title
           plot_string << "set title '#{Grafikon::gnuplot_escape @title}' noenhanced\n"

@@ -6,12 +6,12 @@ require 'grafikon'
 
 class TestBasic < MiniTest::Unit::TestCase
 
-  def test_chart_block
+  def test_chart_bar
     a = (1..6).map{|x| [x,x]}
 
-    Grafikon::Chart::Line.new do
+    Grafikon::Chart::Bar.new do
       add a, :title => 'linear', :mark => :x
-    end.gnuplot(:format => :png, :output => 'test_chart_block.png')
+    end.pgfplots
   end
   
   def test_line_diff
@@ -39,10 +39,10 @@ class TestBasic < MiniTest::Unit::TestCase
     c = Grafikon::Chart::Line.new do
       title "an exam_ple"
       size :fill, '8cm'
-      add a, :title => 'linear', :mark => :x
-      add b, :title => 'linear-and-half', :color => :gray, :mark => :Circle
-      add d, :title => 'rooty', :mark => :none, :axis => :secondary
-      add [[1,1],[5,3],[2.5,2]], :title => 'sorty', :color => :red
+      add a, :title => 'linear', :mark => :x, :line_type => 1
+      add b, :title => 'linear-and-half', :color => :gray, :mark => :Circle, :line_type => 2
+      add d, :title => 'rooty', :mark => :none, :axis => :secondary, :line_type => 1
+      add [[1,1],[5,3],[2.5,2]], :title => 'sorty', :color => :red, :line_type => 4
     end
 
     # pgfplots string
@@ -54,7 +54,7 @@ class TestBasic < MiniTest::Unit::TestCase
     c.gnuplot(:format => :png, :output => 'test_line_chart.png')
 
     # gnuplot string
-    c.gnuplot(:format => :eps)
+    puts c.gnuplot(:format => :eps)
     # run gnuplot 
     c.gnuplot(:format => :eps, :output => 'test_line_chart.eps')
     
