@@ -1,13 +1,13 @@
 module Grafikon
   module Chart
-    class Generic 
-    
+    class Generic
+
       def initialize(&block)
         @title = nil
         @axes = {
           :x1 => Axis.new(self),
           :y1 => Axis.new(self),
-          :y2 => Axis.new(self) 
+          :y2 => Axis.new(self)
         }
         @series = []
         @legend = :outer_next
@@ -18,12 +18,12 @@ module Grafikon
         @extra_pgf_options = []
         # extra_pgf_options "yticklabel style={/pgf/number format/fixed}"
         extra_pgf_options "scaled ticks=false"
-        
+
         @color_pool = []
-      
+
         instance_eval(&block) if block_given?
       end
-      
+
       def gnuplot(options)
         autocomplete
         @series.each(&:check)
@@ -38,7 +38,7 @@ module Grafikon
         case options[:format]
         when :png
           plot_string << "set terminal png medium size 640,480\n"
-        when :eps  
+        when :eps
           plot_string << "set terminal postscript eps enhanced color\n"
         end
         if @title
@@ -69,23 +69,23 @@ module Grafikon
         end
         plot_string
       end
-      
+
       def gnuplot_plot_type
         "linespoints"
       end
-      
+
       def add_color(r,g,b)
         @color_pool << [[r,g,b]]
       end
-      
+
       def extra_pgf_options(*opts)
         @extra_pgf_options += opts
       end
-      
+
       def title(x)
         @title = x
       end
-    
+
       def x_grid(x)
         raise ArgumentError, "Bad x-grid option [#{x}]" unless [nil, :minor, :major, :both].include?(x)
         @x_grid = x
@@ -95,13 +95,13 @@ module Grafikon
         raise ArgumentError, "Bad y-grid option [#{y}]" unless [nil, :minor, :major, :both].include?(y)
         @y_grid = y
       end
-    
+
       def axes(xtitle, ytitle, y2title = nil)
         x_axis(xtitle)
         y_axis(ytitle)
         y2_axis(y2title)
       end
-      
+
       def x_axis(xtitle)
         @axes[:x1].title = xtitle
       end
@@ -113,23 +113,27 @@ module Grafikon
       def y2_axis(y2title)
         @axes[:y2].title = y2title
       end
-      
+
       def y_limits(a,b)
         @y_limits = [a,b]
       end
-      
+
+      def x_limits(a,b)
+        @x_limits = [a,b]
+      end
+
       def legend(x)
         @legend = x
       end
-      
+
       def x_ticks(set)
         @x_ticks = set
       end
-      
+
       def size(w, h, scale_only_axis = true)
         @width, @height, @scale_only_axis = w, h, scale_only_axis
       end
-    
+
       def add(data, opts = {})
         return false if data.empty?
         s = self.class.series_class.new(self)
@@ -144,7 +148,7 @@ module Grafikon
         end
         @series << s
       end
-      
+
       def interpolate_in(xx, yy, x)
         return nil if xx.min > x
         return nil if xx.max < x
@@ -155,7 +159,7 @@ module Grafikon
         x2, y2 = xx[i2], yy[i2]
         [x, y1 + (x - x1) * (y2 - y1) / (x2 - x1)]
       end
-    
+
       def add_diff(base, other, opts = {})
         data = []
         m = opts.delete(:multiplier) || 1.0
@@ -179,7 +183,7 @@ module Grafikon
         end
         add(data, opts)
       end
-    
+
       def add_rdiff(base, other, opts = {})
         data = []
         m = opts.delete(:multiplier) || 100.0
@@ -203,12 +207,12 @@ module Grafikon
         end
         add(data, opts)
       end
-    
+
     protected
-    
+
       def legend_options
         set = ["legend style={anchor=west}"]
-        case @legend 
+        case @legend
         when :outer_next
           set << "legend pos=outer north east"
         when :outer_below
@@ -219,24 +223,35 @@ module Grafikon
         end
         set
       end
-      
+
       def axis_options
         set = []
         case @y_limits
         when nil, :auto
         when Array
-          set << "ymin=#{@y_limits[0]}"
-          set << "ymax=#{@y_limits[1]}"
-        else 
+          set << "ymin=#{@y_limits[0]}" if @y_limits[0]
+          set << "ymax=#{@y_limits[1]}" if @y_limits[1]
+        else
           raise "? #{@y_limits.inspect}"
         end
+
+        case @x_limits
+        when nil, :auto
+        when Array
+          set << "xmin=#{@x_limits[0]}" if @x_limits[0]
+          set << "xmax=#{@x_limits[1]}" if @x_limits[1]
+        else
+          raise "? #{@x_limits.inspect}"
+        end
+
         if @x_ticks
           set << "xtick={#{@x_ticks.map{|x| x[0].to_s}*','}}"
           set << "xticklabels={#{@x_ticks.map{|x| '{'+LaTeX::escape(x[1].to_s)+'}'}*','}}"
         end
+
         set
       end
-      
+
       def grid_options
         set = []
 
@@ -262,7 +277,7 @@ module Grafikon
 
         set
       end
-      
+
       def size_options
         options = @extra_pgf_options
         options << "scale only axis" if @scale_only_axis
@@ -272,7 +287,7 @@ module Grafikon
         if @width
           if String === @width
             options << "width={#{@width}}"
-          elsif @width == :fill 
+          elsif @width == :fill
             options << "width={\\textwidth}"
           else
             raise ArgumentError, "Cannot understand width [#{@width}]"
@@ -288,7 +303,7 @@ module Grafikon
 
         options
       end
-    
+
       def autocomplete
         i = 0
         @series.each do |s|
@@ -304,11 +319,11 @@ module Grafikon
           end
         end
       end
-    
+
       def output(filename, s)
         # beautify a bit
-        s = s.split("\n").map(&:lstrip) * "\n"   
-      
+        s = s.split("\n").map(&:lstrip) * "\n"
+
         # output
         if filename
           File.open(filename, 'w') do |f|
@@ -318,19 +333,19 @@ module Grafikon
           return s
         end
       end
-    
+
     end
-    
+
     class Bar < Generic
-      
+
       def self.series_class
         Series::Bar
       end
-      
+
       def pgfplots(filename = nil)
         autocomplete
         options = []
-        
+
         options << "ybar=4pt"
         options << "enlargelimits=0.3"
         options << "ylabel={#{LaTeX::escape @axes[:y1].title}}" if @axes[:y1].title and !@axes[:y1].title.empty?
@@ -343,12 +358,12 @@ module Grafikon
         if @series.map(&:y_values).flatten.min > 0
           options << "ymin=0"
         end
-        
+
         options += size_options
         options += legend_options
         options += grid_options
         options += axis_options
-        
+
         s = %{
           \\begin{tikzpicture}
           \\begin{axis}[#{options * ","}]
@@ -361,12 +376,12 @@ module Grafikon
         } if @legend
         s << %{
           \\end{axis}
-          \\end{tikzpicture}      
+          \\end{tikzpicture}
         }
         output(filename, s)
       end
     end
-    
+
     class Line < Generic
 
       def self.series_class
@@ -391,7 +406,7 @@ module Grafikon
           s = %{
             \\begin{tikzpicture}}
         end
-        
+
         @series.each do |series|
           series.check
           # series.sort
@@ -409,13 +424,13 @@ module Grafikon
             s << %{
               \\begin{axis}[#{options_local * ","}]
             }
-            
+
             if @legend and secondary and !only_primary
               pseries.each_with_index do |series, i|
                 s << "\\addlegendimage{/pgfplots/refstyle=refplot#{self.object_id}#{i}}\\addlegendentry{#{series.title || "---"} }\n"
               end
             end
-                          
+
             series_list.each_with_index do |series, i|
               s << series.as_pgfplots
               if (only_primary or secondary) and @legend
@@ -424,13 +439,13 @@ module Grafikon
                 s << "\\label{refplot#{self.object_id}#{i}}\n"
               end
             end
-            
+
             s << %{
               \\end{axis}
             }
           end
         end
-        
+
         s << %{
           \\end{tikzpicture}}
         s << "}" if opts[:force_width]
