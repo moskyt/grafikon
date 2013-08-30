@@ -21,6 +21,7 @@ class TestBasic < MiniTest::Unit::TestCase
     c = Grafikon::Chart::Line.new do
       title "an exam_ple"
       size :fill, '8cm'
+      legend :outer_below
       add a, :title => 'linear', :mark => :x
       add b, :title => 'linear-and-half', :color => :gray, :mark => :Circle
       add_diff a, b, :title => 'difference', :mark => :Square, :color => :red, :axis => :secondary
@@ -28,6 +29,7 @@ class TestBasic < MiniTest::Unit::TestCase
 
     # pgfplots file
     c.pgfplots('test_line_diff.tex')
+    c.gnuplot(:format => :eps, :output => 'test_line_diff.eps')
   end
 
   def test_line_chart

@@ -46,6 +46,17 @@ module Grafikon
         if @title
           plot_string << "set title '#{Grafikon::gnuplot_escape @title}' noenhanced\n"
         end
+        
+        case @legend
+        when :outer_next
+          plot_string << "set key outside top right\n"
+        when :outer_below
+          plot_string << "set key below\n"
+        when nil
+          plot_string << "set nokey\n"
+        else
+          raise "? #{@legend}"          
+        end
 
         pseries, sseries = * @series.partition{|x| x.axis == :primary}
 
@@ -212,7 +223,7 @@ module Grafikon
 
     protected
 
-      def legend_options
+      def pgfplots_legend_options
         set = ["legend style={anchor=west}"]
         case @legend
         when :outer_next
@@ -362,7 +373,7 @@ module Grafikon
         end
 
         options += size_options
-        options += legend_options
+        options += pgfplots_legend_options
         options += grid_options
         options += axis_options
 
@@ -397,7 +408,7 @@ module Grafikon
         options << "xlabel={#{LaTeX::escape @axes[:x1].title}}"
 
         options += size_options
-        options += legend_options
+        options += pgfplots_legend_options
         options += grid_options
         options += axis_options
 
