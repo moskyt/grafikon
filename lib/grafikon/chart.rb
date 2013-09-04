@@ -13,11 +13,12 @@ module Grafikon
         @legend = :outer_next
         @x_grid = nil
         @y_grid = :major
-	@x_limits = nil
-	@y_limits = nil
+	      @x_limits = nil
+	      @y_limits = nil
         @scale_only_axis = true
         @x_ticks = nil
         @extra_pgf_options = []
+        @nodes = []
         # extra_pgf_options "yticklabel style={/pgf/number format/fixed}"
         extra_pgf_options "scaled ticks=false"
 
@@ -46,7 +47,7 @@ module Grafikon
         if @title
           plot_string << "set title '#{Grafikon::gnuplot_escape @title}' noenhanced\n"
         end
-        
+
         case @legend
         when :outer_next
           plot_string << "set key outside top right\n"
@@ -55,7 +56,7 @@ module Grafikon
         when nil
           plot_string << "set nokey\n"
         else
-          raise "? #{@legend}"          
+          raise "? #{@legend}"
         end
 
         pseries, sseries = * @series.partition{|x| x.axis == :primary}
@@ -160,6 +161,10 @@ module Grafikon
           s.instance_eval(&Proc.new)
         end
         @series << s
+      end
+
+      def add_node node
+        @nodes << node
       end
 
       def interpolate_in(xx, yy, x)
@@ -387,6 +392,7 @@ module Grafikon
         s << %{
           \\legend{#{@series.map{|x| x.title.gsub("_",'-')} * ','}}
         } if @legend
+        s << "\\node" << @nodes.delete_at(0) << ";\n" while @nodes.any?
         s << %{
           \\end{axis}
           \\end{tikzpicture}
@@ -452,6 +458,8 @@ module Grafikon
                 s << "\\label{refplot#{self.object_id}#{i}}\n"
               end
             end
+
+            s << "\\node" << @nodes.delete_at(0) << ";\n" while @nodes.any?
 
             s << %{
               \\end{axis}
