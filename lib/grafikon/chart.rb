@@ -18,7 +18,7 @@ module Grafikon
         @scale_only_axis = true
         @x_ticks = nil
         @extra_pgf_options = []
-        @nodes = []
+        @pgf_nodes = []
         # extra_pgf_options "yticklabel style={/pgf/number format/fixed}"
         extra_pgf_options "scaled ticks=false"
 
@@ -164,7 +164,7 @@ module Grafikon
       end
 
       def add_node node
-        @nodes << node
+        @pgf_nodes << node
       end
 
       def interpolate_in(xx, yy, x)
@@ -227,6 +227,14 @@ module Grafikon
       end
 
     protected
+    
+      def pgfplots_nodes_string
+        s = ""
+        @pgf_nodes.each do |n|
+          s << "\\node" << n << ";\n"  
+        end
+        s
+      end
 
       def pgfplots_legend_options
         set = ["legend style={anchor=west}"]
@@ -392,7 +400,7 @@ module Grafikon
         s << %{
           \\legend{#{@series.map{|x| x.title.gsub("_",'-')} * ','}}
         } if @legend
-        s << "\\node" << @nodes.delete_at(0) << ";\n" while @nodes.any?
+        s << pgfplots_nodes_string
         s << %{
           \\end{axis}
           \\end{tikzpicture}
@@ -459,7 +467,7 @@ module Grafikon
               end
             end
 
-            s << "\\node" << @nodes.delete_at(0) << ";\n" while @nodes.any?
+            s << pgfplots_nodes_string
 
             s << %{
               \\end{axis}
