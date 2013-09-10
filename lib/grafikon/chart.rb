@@ -11,6 +11,7 @@ module Grafikon
         }
         @series = []
         @legend = :outer_next
+        @legend_columns = 3
         @x_grid = nil
         @y_grid = :major
 	      @x_limits = nil
@@ -140,6 +141,10 @@ module Grafikon
         @legend = x
       end
 
+      def legend_columns(x)
+        @legend_columns = x
+      end
+
       def x_ticks(set)
         @x_ticks = set
       end
@@ -243,6 +248,8 @@ module Grafikon
           set << "legend pos=outer north east"
         when :outer_below
           set << "legend style={at={(0.5,-0.25)},anchor=north,legend columns=-1}"
+        when :outer_below_long
+          set << "legend style={at={(0.5,-0.25)},anchor=north,legend columns=#{@legend_columns}}"
         when nil
         else
           raise "? #{@legend}"
