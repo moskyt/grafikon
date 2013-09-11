@@ -42,6 +42,8 @@ module Grafikon
         case options[:format]
         when :png
           plot_string << "set terminal png enhanced medium size 640,480\n"
+        when :png_large
+          plot_string << "set terminal png enhanced medium size 1920,1440\n"
         when :eps
           plot_string << "set terminal postscript eps enhanced color dashed\n"
         end
@@ -137,8 +139,9 @@ module Grafikon
         @x_limits = [a,b]
       end
 
-      def legend(x)
+      def legend(x, options = {})
         @legend = x
+        @legend_columns = options[:columns] if options[:columns]
       end
 
       def legend_columns(x)
