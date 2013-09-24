@@ -318,7 +318,7 @@ module Grafikon
         options = @extra_pgf_options
         options << "scale only axis" if @scale_only_axis
         if @title and !@title.empty?
-          options << "title={#{@title}}"
+          options << "title={#{LaTeX::escape @title}}"
         end
         if @width
           if String === @width
