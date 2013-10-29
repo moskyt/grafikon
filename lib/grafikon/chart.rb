@@ -11,10 +11,12 @@ module Grafikon
         }
         @series = []
         @legend = :outer_next
-        y_grid(:major)
+        @legend_columns = 3
+        @x_grid = nil
+        @y_grid = :major
         @scale_only_axis = true
         @extra_pgf_options = []
-        @nodes = []
+        @pgf_nodes = []
         # extra_pgf_options "yticklabel style={/pgf/number format/fixed}"
         extra_pgf_options "scaled ticks=false"
 
@@ -37,6 +39,8 @@ module Grafikon
         case options[:format]
         when :png
           plot_string << "set terminal png enhanced medium size 640,480\n"
+        when :png_large
+          plot_string << "set terminal png enhanced medium size 1920,1440\n"
         when :eps
           plot_string << "set terminal postscript eps enhanced color dashed\n"
         end
@@ -141,8 +145,13 @@ module Grafikon
         @axes[:x1].limits = [a,b]
       end
 
-      def legend(x)
+      def legend(x, options = {})
         @legend = x
+        @legend_columns = options[:columns] if options[:columns]
+      end
+
+      def legend_columns(x)
+        @legend_columns = x
       end
 
       def x_ticks(set)
@@ -169,7 +178,7 @@ module Grafikon
       end
 
       def add_node node
-        @nodes << node
+        @pgf_nodes << node
       end
 
       def interpolate_in(xx, yy, x)
@@ -232,6 +241,14 @@ module Grafikon
       end
 
     protected
+    
+      def pgfplots_nodes_string
+        s = ""
+        @pgf_nodes.each do |n|
+          s << "\\node" << n << ";\n"  
+        end
+        s
+      end
 
       def pgfplots_legend_options
         set = ["legend style={anchor=west}"]
@@ -240,6 +257,8 @@ module Grafikon
           set << "legend pos=outer north east"
         when :outer_below
           set << "legend style={at={(0.5,-0.25)},anchor=north,legend columns=-1}"
+        when :outer_below_long
+          set << "legend style={at={(0.5,-0.25)},anchor=north,legend columns=#{@legend_columns}}"
         when nil
         else
           raise "? #{@legend}"
@@ -251,7 +270,7 @@ module Grafikon
         options = @extra_pgf_options
         options << "scale only axis" if @scale_only_axis
         if @title and !@title.empty?
-          options << "title={#{@title}}"
+          options << "title={#{LaTeX::escape @title}}"
         end
         if @width
           if String === @width
@@ -343,7 +362,7 @@ module Grafikon
         s << %{
           \\legend{#{@series.map{|x| x.title.gsub("_",'-')} * ','}}
         } if @legend
-        s << "\\node" << @nodes.delete_at(0) << ";\n" while @nodes.any?
+        s << pgfplots_nodes_string
         s << %{
           \\end{axis}
           \\end{tikzpicture}
@@ -395,20 +414,20 @@ module Grafikon
 
             if @legend and secondary and !only_primary
               pseries.each_with_index do |series, i|
-                s << "\\addlegendimage{/pgfplots/refstyle=refplot#{self.object_id}#{i}}\\addlegendentry{#{series.title || "---"} }\n"
+                s << "\\addlegendimage{/pgfplots/refstyle=refplot#{self.object_id}#{i}}\\addlegendentry{#{LaTeX::escape(series.title || "---")} }\n"
               end
             end
 
             series_list.each_with_index do |series, i|
               s << series.as_pgfplots
               if (only_primary or secondary) and @legend
-                s << "\\addlegendentry{#{series.title || "---"}}\n"
+                s << "\\addlegendentry{#{LaTeX::escape(series.title || "---")}}\n"
               elsif !secondary and @legend
                 s << "\\label{refplot#{self.object_id}#{i}}\n"
               end
             end
 
-            s << "\\node" << @nodes.delete_at(0) << ";\n" while @nodes.any?
+            s << pgfplots_nodes_string
 
             s << %{
               \\end{axis}
