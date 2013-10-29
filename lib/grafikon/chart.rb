@@ -5,19 +5,16 @@ module Grafikon
       def initialize(&block)
         @title = nil
         @axes = {
-          :x1 => Axis.new(self),
-          :y1 => Axis.new(self),
-          :y2 => Axis.new(self)
+          :x1 => Axis.new(:x,self),
+          :y1 => Axis.new(:y,self),
+          :y2 => Axis.new(:y,self)
         }
         @series = []
         @legend = :outer_next
         @legend_columns = 3
         @x_grid = nil
         @y_grid = :major
-	      @x_limits = nil
-	      @y_limits = nil
         @scale_only_axis = true
-        @x_ticks = nil
         @extra_pgf_options = []
         @pgf_nodes = []
         # extra_pgf_options "yticklabel style={/pgf/number format/fixed}"
@@ -105,12 +102,17 @@ module Grafikon
 
       def x_grid(x)
         raise ArgumentError, "Bad x-grid option [#{x}]" unless [nil, :minor, :major, :both].include?(x)
-        @x_grid = x
+        @axes[:x1].grid = x
       end
 
       def y_grid(y)
         raise ArgumentError, "Bad y-grid option [#{y}]" unless [nil, :minor, :major, :both].include?(y)
-        @y_grid = y
+        @axes[:y1].grid = y
+      end
+
+      def y2_grid(y)
+        raise ArgumentError, "Bad y-grid option [#{y}]" unless [nil, :minor, :major, :both].include?(y)
+        @axes[:y2].grid = y
       end
 
       def axes(xtitle, ytitle, y2title = nil)
@@ -132,11 +134,15 @@ module Grafikon
       end
 
       def y_limits(a,b)
-        @y_limits = [a,b]
+        @axes[:y1].limits = [a,b]
+      end
+
+      def y2_limits(a,b)
+        @axes[:y2].limits = [a,b]
       end
 
       def x_limits(a,b)
-        @x_limits = [a,b]
+        @axes[:x1].limits = [a,b]
       end
 
       def legend(x, options = {})
@@ -149,7 +155,7 @@ module Grafikon
       end
 
       def x_ticks(set)
-        @x_ticks = set
+        @axes[:x1].ticks = set
       end
 
       def size(w, h, scale_only_axis = true)
@@ -260,60 +266,6 @@ module Grafikon
         set
       end
 
-      def axis_options
-        set = []
-        case @y_limits
-        when nil, :auto
-        when Array
-          set << "ymin=#{@y_limits[0]}" if @y_limits[0]
-          set << "ymax=#{@y_limits[1]}" if @y_limits[1]
-        else
-          raise "? #{@y_limits.inspect}"
-        end
-
-        case @x_limits
-        when nil, :auto
-        when Array
-          set << "xmin=#{@x_limits[0]}" if @x_limits[0]
-          set << "xmax=#{@x_limits[1]}" if @x_limits[1]
-        else
-          raise "? #{@x_limits.inspect}"
-        end
-
-        if @x_ticks
-          set << "xtick={#{@x_ticks.map{|x| x[0].to_s}*','}}"
-          set << "xticklabels={#{@x_ticks.map{|x| '{'+LaTeX::escape(x[1].to_s)+'}'}*','}}"
-        end
-
-        set
-      end
-
-      def grid_options
-        set = []
-
-        case @x_grid
-        when nil
-        when :minor, :both
-          set << "xminorgrids=true"
-        when :major, :both
-          set << "ymajorgrids=true"
-        else
-          raise "? #{@x_grid}"
-        end
-
-        case @y_grid
-        when nil
-        when :minor, :both
-          set << "yminorgrids=true"
-        when :major, :both
-          set << "ymajorgrids=true"
-        else
-          raise "? #{@y_grid}"
-        end
-
-        set
-      end
-
       def size_options
         options = @extra_pgf_options
         options << "scale only axis" if @scale_only_axis
@@ -397,8 +349,8 @@ module Grafikon
 
         options += size_options
         options += pgfplots_legend_options
-        options += grid_options
-        options += axis_options
+        options += @axes[:x1].options
+        options += @axes[:y1].options
 
         s = %{
           \\begin{tikzpicture}
@@ -429,12 +381,10 @@ module Grafikon
         autocomplete
         options = []
         options << "compat=newest"
-        options << "xlabel={#{LaTeX::escape @axes[:x1].title}}"
 
         options += size_options
         options += pgfplots_legend_options
-        options += grid_options
-        options += axis_options
+        options += @axes[:x1].options
 
         if opts[:force_width]
           s = "\\resizebox{#{opts[:force_width]}}{!}{%
@@ -455,7 +405,7 @@ module Grafikon
         [[pseries, :y1], [sseries, :y2]].each do |series_list, axis|
           secondary = (axis == :y2)
           if series_list.any?
-            options_local = options + ["ylabel={#{LaTeX::escape @axes[axis].title}}"]
+            options_local = options + @axes[axis].options
             options_local << "axis y line*=left" if !only_primary and !secondary
             options_local << "axis y line*=right" << "axis x line=none" if secondary
             s << %{
