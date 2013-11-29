@@ -1,16 +1,17 @@
 module Grafikon
   module Series
     class Generic
-      attr_accessor :data, :mark, :color, :pattern, :line_width, :line_type, :mark_size, :axis
+      attr_accessor :data, :mark, :color, :pattern, :line_width, :line_type, :mark_size, :axis, :pgf_options
       attr_writer :title
 
       def initialize(chart)
         @title = nil
+        @pgf_options = nil
         @chart = chart
         @color = nil
         @pattern = nil
         @mark = nil
-	      @mark_size = 3
+	@mark_size = 3
         @line_width = 1
         @line_type = nil
         @data = []
@@ -175,6 +176,8 @@ module Grafikon
         when :const
           options << "const plot"
         end
+
+	options << [@pgf_options].flatten if @pgf_options
 
         eb = ""
         if @y_error_bars
