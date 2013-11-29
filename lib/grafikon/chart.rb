@@ -178,7 +178,11 @@ module Grafikon
       end
 
       def pgf_node str
-        @pgf_commands << "\\node" << str << ";\n"  
+        @pgf_commands << "\\node " << str << ";\n"  
+      end
+
+      def pgf_fill str
+        @pgf_commands << "\\fill " << str << ";\n"
       end
 
       def pgf_draw str
