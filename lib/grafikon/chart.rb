@@ -414,14 +414,14 @@ module Grafikon
 
             if @legend and secondary and !only_primary
               pseries.each_with_index do |series, i|
-                s << "\\addlegendimage{/pgfplots/refstyle=refplot#{self.object_id}#{i}}\\addlegendentry{#{LaTeX::escape(series.title || "---")} }\n"
+                s << "\\addlegendimage{/pgfplots/refstyle=refplot#{self.object_id}#{i}}\\addlegendentry{#{LaTeX::escape(series.title)} }\n" if series.title
               end
             end
 
             series_list.each_with_index do |series, i|
               s << series.as_pgfplots
               if (only_primary or secondary) and @legend
-                s << "\\addlegendentry{#{LaTeX::escape(series.title || "---")}}\n"
+                s << "\\addlegendentry{#{LaTeX::escape(series.title)}}\n" if series.title
               elsif !secondary and @legend
                 s << "\\label{refplot#{self.object_id}#{i}}\n"
               end
