@@ -16,7 +16,7 @@ module Grafikon
         @y_grid = :major
         @scale_only_axis = true
         @extra_pgf_options = []
-        @pgf_nodes = []
+        @pgf_commands = ''
         # extra_pgf_options "yticklabel style={/pgf/number format/fixed}"
         extra_pgf_options "scaled ticks=false"
 
@@ -177,8 +177,16 @@ module Grafikon
         @series << s
       end
 
-      def add_node node
-        @pgf_nodes << node
+      def pgf_node str
+        @pgf_commands << "\\node " << str << ";\n"  
+      end
+
+      def pgf_fill str
+        @pgf_commands << "\\fill " << str << ";\n"
+      end
+
+      def pgf_draw str
+        @pgf_commands << "\\draw " << str << ";\n"
       end
 
       def interpolate_in(xx, yy, x)
@@ -242,14 +250,6 @@ module Grafikon
 
     protected
     
-      def pgfplots_nodes_string
-        s = ""
-        @pgf_nodes.each do |n|
-          s << "\\node" << n << ";\n"  
-        end
-        s
-      end
-
       def pgfplots_legend_options
         set = ["legend style={anchor=west}"]
         case @legend
@@ -362,7 +362,7 @@ module Grafikon
         s << %{
           \\legend{#{@series.map{|x| x.title.gsub("_",'-')} * ','}}
         } if @legend
-        s << pgfplots_nodes_string
+        s << @pgf_commands
         s << %{
           \\end{axis}
           \\end{tikzpicture}
@@ -414,20 +414,20 @@ module Grafikon
 
             if @legend and secondary and !only_primary
               pseries.each_with_index do |series, i|
-                s << "\\addlegendimage{/pgfplots/refstyle=refplot#{self.object_id}#{i}}\\addlegendentry{#{LaTeX::escape(series.title || "---")} }\n"
+                s << "\\addlegendimage{/pgfplots/refstyle=refplot#{self.object_id}#{i}}\\addlegendentry{#{LaTeX::escape(series.title)} }\n" if series.title
               end
             end
 
             series_list.each_with_index do |series, i|
               s << series.as_pgfplots
               if (only_primary or secondary) and @legend
-                s << "\\addlegendentry{#{LaTeX::escape(series.title || "---")}}\n"
+                s << "\\addlegendentry{#{LaTeX::escape(series.title)}}\n" if series.title
               elsif !secondary and @legend
                 s << "\\label{refplot#{self.object_id}#{i}}\n"
               end
             end
 
-            s << pgfplots_nodes_string
+            s << @pgf_commands
 
             s << %{
               \\end{axis}

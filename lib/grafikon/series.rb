@@ -21,7 +21,7 @@ module Grafikon
       end
 
       def title
-        @title || '---'
+        @title == :none ? nil : (@title || '---')
       end
 
       def check
@@ -58,7 +58,7 @@ module Grafikon
 
         opts << "lc #{@color.as_gnuplot}"
         opts << "pt #{@mark.as_gnuplot}" unless @mark.none?
-        opts << "title \"#{@title}\""
+        opts << "title \"#{@title}\"" if title
         opts << "axes x1y2" if @axis == :secondary
 
         opts * " "
