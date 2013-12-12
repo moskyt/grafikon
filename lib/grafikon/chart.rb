@@ -39,6 +39,8 @@ module Grafikon
         case options[:format]
         when :png
           plot_string << "set terminal png enhanced medium size 640,480\n"
+        when :png_medium
+          plot_string << "set terminal png enhanced medium size 1280,960\n"
         when :png_large
           plot_string << "set terminal png enhanced medium size 1920,1440\n"
         when :eps
