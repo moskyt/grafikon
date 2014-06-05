@@ -12,6 +12,9 @@ module Grafikon
     end
 
     def options
+      
+      require 'guttapercha'
+      
       set = []
       case @limits
       when nil, :auto

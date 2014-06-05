@@ -269,6 +269,8 @@ module Grafikon
       end
 
       def size_options
+        require 'guttapercha'
+        
         options = @extra_pgf_options
         options << "scale only axis" if @scale_only_axis
         if @title and !@title.empty?
@@ -333,6 +335,8 @@ module Grafikon
       end
 
       def pgfplots(filename = nil)
+        require 'guttapercha'
+        
         autocomplete
         options = []
 
@@ -380,6 +384,8 @@ module Grafikon
       end
 
       def pgfplots(filename = nil, opts = {})
+        require 'guttapercha'
+        
         autocomplete
         options = []
         options << "compat=newest"

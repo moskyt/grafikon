@@ -6,8 +6,6 @@ require_relative "grafikon/pattern"
 require_relative "grafikon/mark"
 require_relative "grafikon/series"
 
-require 'guttapercha'
-
 module Grafikon
 
   def self.gnuplot_escape(s)
