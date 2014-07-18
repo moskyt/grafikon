@@ -22,6 +22,7 @@ class TestBasic < MiniTest::Unit::TestCase
       title "an exam_ple"
       size :fill, '8cm'
       legend :outer_below
+      y_limits 0, 20
       add a, :title => 'linear', :mark => :x
       add b, :title => 'linear-and-half', :color => :gray, :mark => :Circle
       add_diff a, b, :title => 'difference', :mark => :Square, :color => :red, :axis => :secondary
@@ -30,6 +31,7 @@ class TestBasic < MiniTest::Unit::TestCase
     # pgfplots file
     c.pgfplots('test_line_diff.tex')
     c.gnuplot(:format => :eps, :output => 'test_line_diff.eps')
+    puts c.gnuplot(:format => :png)
   end
 
   def test_line_chart

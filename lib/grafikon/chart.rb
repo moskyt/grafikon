@@ -75,6 +75,12 @@ module Grafikon
         if @axes[:y2].title
           plot_string << "set y2label \"#{Grafikon::gnuplot_escape @axes[:y2].title}\" noenhanced\n"
         end
+        if l = @axes[:y1].limits
+          plot_string << "set yrange [#{l.first}:#{l.last}]\n"
+        end
+        if l = @axes[:y2].limits
+          plot_string << "set y2range [#{l.first}:#{l.last}]\n"
+        end
         plot_string << "plot #{series_list * ','}\n"
         if options[:output]
           plot_string = %{set output "#{options[:output]}"\n} + plot_string
