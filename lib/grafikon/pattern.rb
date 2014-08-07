@@ -1,6 +1,7 @@
 module Grafikon
   class Pattern
     
+    # return the pattern as a pgfplots chunk (a wrapper)
     def as_pgfplots(pgfword)
       %{
         postaction={

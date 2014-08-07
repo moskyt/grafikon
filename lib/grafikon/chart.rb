@@ -1,7 +1,10 @@
 module Grafikon
   module Chart
+    
+    # generic chart class
     class Generic
 
+      # constructor; can take a block, which is evaluated within the instance context
       def initialize(&block)
         @title = nil
         @axes = {
@@ -25,6 +28,10 @@ module Grafikon
         instance_eval(&block) if block_given?
       end
 
+      # plot the chart using gnuplot
+      # options can be:
+      #   :format -- output format (gnuplot terminal), can be :eps or :png (640x480), :png_medium (1280x960), :png_large (1920x1440)
+      #   :output -- output filename; if given, gnuplot is executed -- otherwise the gnuplot input deck is returned with no action taken 
       def gnuplot(options)
         autocomplete
         @series.each(&:check)
@@ -45,7 +52,12 @@ module Grafikon
           plot_string << "set terminal png enhanced medium size 1920,1440\n"
         when :eps
           plot_string << "set terminal postscript eps enhanced color dashed\n"
+        when nil
+          raise ArgumentError, "gnuplot format not given"
+        else
+          raise ArgumentError, "unknown gnuplot format: #{options[:format]}"
         end
+        
         if @title
           plot_string << "set title '#{Grafikon::gnuplot_escape @title}' noenhanced\n"
         end
@@ -90,10 +102,6 @@ module Grafikon
           `gnuplot #{p.path}`
         end
         plot_string
-      end
-
-      def gnuplot_plot_type
-        "linespoints"
       end
 
       def add_color(r,g,b)
@@ -311,6 +319,22 @@ module Grafikon
         options
       end
 
+      # write the _data_ to file if _filename_ is given; return just the beautified _data_ instead
+      def pgf_output(filename, data)
+        # beautify a bit
+        s = data.split("\n").map(&:lstrip) * "\n"
+
+        # output
+        if filename
+          filename.kind_of?(String) or raise ArgumentError, "Filename #{filename.inspect} is not a string!"
+          File.open(filename, 'w') do |f|
+            f.print s
+          end
+        else
+          return s
+        end
+      end
+      
       def autocomplete
         i = 0
         @series.each do |s|
@@ -325,31 +349,23 @@ module Grafikon
             i += 1
           end
         end
-      end
-
-      def output(filename, s)
-        # beautify a bit
-        s = s.split("\n").map(&:lstrip) * "\n"
-
-        # output
-        if filename
-          filename.kind_of?(String) or raise ArgumentError, "Filename #{filename.inspect} is not a string!"
-          File.open(filename, 'w') do |f|
-            f.print s
-          end
-        else
-          return s
-        end
-      end
+      end      
 
     end
 
     class Bar < Generic
 
+      # :nodoc:
       def self.series_class
         Series::Bar
       end
+      
+      # :nodoc:
+      def gnuplot_plot_type
+        raise "bar chart is not implemented for gnuplot"
+      end
 
+      # plot the chart using pgfplots 
       def pgfplots(filename = nil)
         require 'guttapercha'
         
@@ -371,8 +387,8 @@ module Grafikon
 
         options += size_options
         options += pgfplots_legend_options
-        options += @axes[:x1].options
-        options += @axes[:y1].options
+        options += @axes[:x1].pgf_options
+        options += @axes[:y1].pgf_options
 
         s = %{
           \\begin{tikzpicture}
@@ -389,14 +405,20 @@ module Grafikon
           \\end{axis}
           \\end{tikzpicture}
         }
-        output(filename, s)
+        pgf_output(filename, s)
       end
     end
 
     class Line < Generic
 
+      # :nodoc:
       def self.series_class
         Series::Line
+      end
+
+      # :nodoc:
+      def gnuplot_plot_type
+        "linespoints"
       end
 
       def pgfplots(filename = nil, opts = {})
@@ -408,7 +430,7 @@ module Grafikon
 
         options += size_options
         options += pgfplots_legend_options
-        options += @axes[:x1].options
+        options += @axes[:x1].pgf_options
 
         if opts[:force_width]
           s = "\\resizebox{#{opts[:force_width]}}{!}{%
@@ -431,7 +453,7 @@ module Grafikon
         [[pseries, :y1], [sseries, :y2]].each do |series_list, axis|
           secondary = (axis == :y2)
           if series_list.any?
-            options_local = options + @axes[axis].options
+            options_local = options + @axes[axis].pgf_options
             options_local << "axis y line*=left" if !only_primary and !secondary
             options_local << "axis y line*=right" << "axis x line=none" if secondary
             s << %{
@@ -465,7 +487,7 @@ module Grafikon
           \\end{tikzpicture}}
         s << "}" if opts[:force_width]
         s << "\n"
-        output(filename, s)
+        pgf_output(filename, s)
       end
     end
   end

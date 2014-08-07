@@ -1,6 +1,6 @@
 module Grafikon
   class Mark
-    #\usetikzlibrary{plotmarks}
+    # full set of allowed marks (including duplicates)
     SET = [
       :Circle, :circle_filled, 
       :dcross, :x,
@@ -22,6 +22,7 @@ module Grafikon
       :star,
       :none,
       ]
+    # list of unique marks  
     LIST = [
       :Circle,
       :dcross,
@@ -42,20 +43,24 @@ module Grafikon
       :asterisk,
       :star,
       ]  
-          
+    
+    # constructor (_kind_ is a symbol for the desired mark type)      
     def initialize(kind)
       SET.include?(kind) or raise ArgumentError, "Unknown mark type [#{kind}]"
       @kind = kind
     end  
     
+    # create a mark using the index
     def self.ord(n)
       new(LIST[n % LIST.size])
     end
     
+    # is this the blank mark?
     def none?
       @kind == :none
     end
     
+    # gnuplot representation (pointtype) for this mark
     def as_gnuplot
       case @kind
       when :none
@@ -91,6 +96,7 @@ module Grafikon
       end
     end
     
+    # pgfplots representation for this mark
     def as_pgfplots
       case @kind 
       when :circle_filled, :Circle
@@ -132,7 +138,6 @@ module Grafikon
       when :star
         'star'
       else
-        #raise ArgumentError, "Marker kind mismatch /#{@kind}/"
         '*'
       end
     end

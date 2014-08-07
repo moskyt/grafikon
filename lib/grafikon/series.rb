@@ -1,7 +1,24 @@
 module Grafikon
   module Series
+    # general chart series class 
     class Generic
-      attr_accessor :data, :mark, :color, :pattern, :line_width, :line_type, :mark_size, :axis, :pgf_options
+      # series data (array of points - 2- or 4-element arrays)
+      attr_accessor :data
+      # series mark (a Grafikon::Mark object or a symbol)
+      attr_accessor :mark
+      # series color (a Grafikon::Color object or a symbol)
+      attr_accessor :color
+      # line width in points
+      attr_accessor :line_width
+      # line type (currently as a number for gnuplot; not recogized by pgfplots plots)
+      attr_accessor :line_type
+      # mark size in points
+      attr_accessor :mark_size
+      # vertial axis selector (:primary or :secondary)
+      attr_accessor :axis
+      # extra PGF options
+      attr_accessor :pgf_options
+      # series label
       attr_writer :title
 
       def initialize(chart)
@@ -9,9 +26,8 @@ module Grafikon
         @pgf_options = nil
         @chart = chart
         @color = nil
-        @pattern = nil
         @mark = nil
-	@mark_size = 3
+	      @mark_size = 3
         @line_width = 1
         @line_type = nil
         @data = []
@@ -20,6 +36,7 @@ module Grafikon
         @axis = :primary
       end
 
+      #return the series label (or a three-dash string if no title is given)
       def title
         @title == :none ? nil : (@title.to_s || '---')
       end
@@ -64,13 +81,14 @@ module Grafikon
         opts * " "
       end
 
+      # build a CSV tempfile
       def csv_temp_file
         require 'tempfile'
 
         file = Tempfile.new('series_csv')
 
-        @data.each do |x,y|
-          file.write "%.5e %.5e\n" % [x,y]
+        @data.each do |ary|
+          file.write((ary.map{|x| "%.5e" % x} * " ") + "\n")
         end
 
         file.close
@@ -78,14 +96,17 @@ module Grafikon
         file
       end
 
+      # return an array of x-values
       def x_values
         @data.map{|x| x[0]}
       end
 
+      # return an array of y-values
       def y_values
         @data.map{|x| x[1]}
       end
 
+      # convert the series to a step function
       def stepify
         return if @data.empty?
         new_data = []
@@ -101,6 +122,12 @@ module Grafikon
         @data = new_data
       end
 
+      # prune the series; within each of the _n_ intervals choose the minimum and maximum value and make a bounding plot with (x1,min) and (x2,max) points for each interval
+      #
+      # the _opts_ hash can contain the following options:
+      # 
+      # :remove_outliers -- if true, removes all points with y outside the 2-sigma interval
+      # :select -- can be :min or :max to select the minimum or maximum point, respectively
       def prune(n, opts)
         return if @data.empty?
         opts[:remove_outliers] = false unless opts.has_key?(:remove_outliers)
@@ -129,6 +156,7 @@ module Grafikon
 
     end
 
+    # line series chart
     class Line < Generic
 
       def initialize(chart)
@@ -136,20 +164,25 @@ module Grafikon
         @connect = :smooth
       end
 
+      # segment connection type, can be either :straight, :smooth or :const (used only for pgfplots plots)
       def connect=(x)
         [:straight, :smooth, :const].include?(x) or raise ArgumentError, "Invalid connect [#{x}]"
         @connect = x
       end
 
-      def y_error_bars(opts = {})
-        @y_error_bars = {:measure => :fixed, :direction => :both}.merge(opts)
+      # set y errorbars; the available _options_ are:
+      #  :direction -- can be :plus, :minus or :both
+      def y_error_bars(options = {})
+        @y_error_bars = {:direction => :both}.merge(options)
       end
 
+      # check for validity and also sort the data according to the x-coord
       def check
         super
         @data = @data.sort_by{|x| x.first}
       end
 
+      # return the data as a pgfplots chart chunk
       def as_pgfplots
         check
         options = []
@@ -177,7 +210,7 @@ module Grafikon
           options << "const plot"
         end
 
-	options << [@pgf_options].flatten if @pgf_options
+	      options += [@pgf_options].flatten if @pgf_options
 
         eb = ""
         if @y_error_bars
@@ -212,8 +245,18 @@ module Grafikon
 
     end
 
+    # bar chart series
     class Bar < Generic
 
+      # pattern for bar charts
+      attr_accessor :pattern
+      
+      def initialize(chart)
+        super(chart)
+        @pattern = nil
+      end
+
+      # return the data as a pgfplots chunk
       def as_pgfplots
         check
         p = "color=rgbcolor%04d%04d%04d" % [color.r*1000, color.g*1000, color.b*1000]

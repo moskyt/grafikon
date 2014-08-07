@@ -1,7 +1,21 @@
 module Grafikon
+  # An axis wrapper for defining limits, axis labels or ticks
   class Axis
+    
+    # axis type - :x or :y
     attr_reader :type
-    attr_accessor :title, :grid, :limits, :ticks
+    
+    # axis label
+    attr_accessor :title
+    
+    # grid lines setting on this axis, can be nil, :minor, :major or :both
+    attr_accessor :grid
+    
+    # axis minimum/maximum limits; can be nil (or :auto) or a 2-floats array
+    attr_accessor :limits
+    
+    # extra ticks on this axis; an array of 2-element arrays where the first element is the tick position and the second one is the tick label
+    attr_accessor :ticks
 
     def initialize(type, chart)
       @type = type
@@ -11,7 +25,7 @@ module Grafikon
       @chart = chart
     end
 
-    def options
+    def pgf_options
       
       require 'guttapercha'
       
@@ -19,10 +33,11 @@ module Grafikon
       case @limits
       when nil, :auto
       when Array
+        set.size <= 2 or raise ArgumentError, "Limits are given, but more than two fields were entered"
         set << "#{type}min=#{@limits[0]}" if @limits[0]
         set << "#{type}max=#{@limits[1]}" if @limits[1]
       else
-        raise "? #{@limits.inspect}"
+        raise ArgumentError, "? #{@limits.inspect}"
       end
 
       case @grid

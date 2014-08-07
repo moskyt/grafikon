@@ -1,8 +1,15 @@
 module Grafikon
+  # versatile wrapper for color processing
   class Color
     
-    attr_reader :r, :g, :b
+    # red component
+    attr_reader :r
+    # green component
+    attr_reader :g
+    # blue component
+    attr_reader :b
     
+    # several predefined colors
     MAP = {
       :red => [1.0, 0, 0],
       :blue => [0, 0, 1.0],
@@ -17,13 +24,15 @@ module Grafikon
       :gray => [0.8, 0.8, 0.8],
       :black => [0, 0, 0],
     }
-    
+     
+    # constructor-by-RGB
     def self.rgb(r, g, b)
       c = new
       c.set_rgb(r, g, b)
       c
     end
     
+    # constructor-by-name
     def self.name(color_name)
       c = new
       MAP[color_name.to_sym] or raise ArgumentError, "Color [#{color_name}] not known"
@@ -31,19 +40,23 @@ module Grafikon
       c
     end
     
+    # ordinal constructor (choose a color by its index in the list)
     def self.ord(i)
       k = MAP.keys
       name(k[i % k.size])
     end
     
-    def set_rgb(r,g,b)
+    # set RGB components of the color
+    def set_rgb(r, g, b)
       @r, @g, @b = r, g, b
     end
     
+    # output color as a PGFplots string
     def as_pgfplots
       "{rgb:red,#{@r};green,#{@g};blue,#{@b}}"
     end
     
+    # output color as a gnuplot string
     def as_gnuplot
       "rgb \"#%02x%02x%02x\"" % [@r*255, @g*255, @b*255]
     end
