@@ -21,7 +21,7 @@ module Grafikon
       end
 
       def title
-        @title == :none ? nil : (@title || '---')
+        @title == :none ? nil : (@title.to_s || '---')
       end
 
       def check

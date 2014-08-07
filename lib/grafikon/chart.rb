@@ -105,7 +105,7 @@ module Grafikon
       end
 
       def title(x)
-        @title = x
+        @title = x.to_s
       end
 
       def x_grid(x)
@@ -178,6 +178,9 @@ module Grafikon
             s.send(:"#{key}=", val)
           end
         end
+        data.reject! do |x,y|
+          not x && y
+        end
         s.data = data
         if block_given?
           s.instance_eval(&Proc.new)
@@ -213,6 +216,12 @@ module Grafikon
         m = opts.delete(:multiplier) || 1.0
         t = opts.delete(:tolerance) || 1e-5
         int = opts.delete(:interpolate)
+        base.reject! do |x,y|
+          not x && y
+        end
+        other.reject! do |x,y|
+          not x && y
+        end
         k1 = base.map{|x| x[0]}
         k2 = other.map{|x| x[0]}
         (k1 + k2).sort.each do |x|
@@ -324,6 +333,7 @@ module Grafikon
 
         # output
         if filename
+          filename.kind_of?(String) or raise ArgumentError, "Filename #{filename.inspect} is not a string!"
           File.open(filename, 'w') do |f|
             f.print s
           end
@@ -407,6 +417,8 @@ module Grafikon
           s = %{
             \\begin{tikzpicture}}
         end
+        
+        s << "\\tikzstyle{every node}=[font=\\#{opts[:font]}]" if opts[:font]
 
         @series.each do |series|
           series.check
