@@ -1,7 +1,7 @@
 module Grafikon
   module Series
     # general chart series class 
-    class Generic
+    class Base
       # series data (array of points - 2- or 4-element arrays)
       attr_accessor :data
       # series mark (a Grafikon::Mark object or a symbol)
@@ -55,6 +55,7 @@ module Grafikon
         end
       end
 
+      # format this series' options as a gnuplot option string
       def gnuplot_options
         opts = []
 
@@ -106,7 +107,7 @@ module Grafikon
         @data.map{|x| x[1]}
       end
 
-      # convert the series to a step function
+      # convert the series to a step function (original data are in the centers of the steps)
       def stepify
         return if @data.empty?
         new_data = []
@@ -157,7 +158,7 @@ module Grafikon
     end
 
     # line series chart
-    class Line < Generic
+    class Line < Base
 
       def initialize(chart)
         super(chart)
@@ -246,7 +247,7 @@ module Grafikon
     end
 
     # bar chart series
-    class Bar < Generic
+    class Bar < Base
 
       # pattern for bar charts
       attr_accessor :pattern

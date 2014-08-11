@@ -2,7 +2,7 @@ module Grafikon
   module Chart
     
     # generic chart class
-    class Generic
+    class Base
 
       # constructor; can take a block, which is evaluated within the instance context
       def initialize(&block)
@@ -14,7 +14,7 @@ module Grafikon
         }
         @series = []
         @legend = :outer_next
-        @legend_columns = 3
+        @legend_columns = -1
         @x_grid = nil
         @y_grid = :major
         @scale_only_axis = true
@@ -59,7 +59,7 @@ module Grafikon
         end
         
         if @title
-          plot_string << "set title '#{Grafikon::gnuplot_escape @title}' noenhanced\n"
+          plot_string << "set title '#{Grafikon::Gnuplot::escape @title}' noenhanced\n"
         end
 
         case @legend
@@ -79,13 +79,13 @@ module Grafikon
           plot_string << "set y2tics\n"
         end
         if @axes[:x1].title
-          plot_string << "set xlabel \"#{Grafikon::gnuplot_escape @axes[:x1].title}\" noenhanced\n"
+          plot_string << "set xlabel \"#{Grafikon::Gnuplot::escape @axes[:x1].title}\" noenhanced\n"
         end
         if @axes[:y1].title
-          plot_string << "set ylabel \"#{Grafikon::gnuplot_escape @axes[:y1].title}\" noenhanced\n"
+          plot_string << "set ylabel \"#{Grafikon::Gnuplot::escape @axes[:y1].title}\" noenhanced\n"
         end
         if @axes[:y2].title
-          plot_string << "set y2label \"#{Grafikon::gnuplot_escape @axes[:y2].title}\" noenhanced\n"
+          plot_string << "set y2label \"#{Grafikon::Gnuplot::escape @axes[:y2].title}\" noenhanced\n"
         end
         if l = @axes[:y1].limits
           plot_string << "set yrange [#{l.first}:#{l.last}]\n"
@@ -137,35 +137,49 @@ module Grafikon
         y2_axis(y2title)
       end
 
+      # set title for the horizontal (X) axis
       def x_axis(xtitle)
         @axes[:x1].title = xtitle
       end
 
+      # set title for the primary vertical (Y) axis
       def y_axis(ytitle)
         @axes[:y1].title = ytitle
       end
 
+      # set title for the secondary vertical (Y2) axis
       def y2_axis(y2title)
         @axes[:y2].title = y2title
       end
 
-      def y_limits(a,b)
-        @axes[:y1].limits = [a,b]
+      # set minimum and maximum limit for the primary vertical (Y) axis; any of the limits can be nil to use auto setting
+      def y_limits(min, max)
+        @axes[:y1].limits = [min, max]
       end
 
-      def y2_limits(a,b)
-        @axes[:y2].limits = [a,b]
+      # set minimum and maximum limit for the secondary vertical (Y2) axis; any of the limits can be nil to use auto setting
+      def y2_limits(min, max)
+        @axes[:y2].limits = [min, max]
       end
 
-      def x_limits(a,b)
-        @axes[:x1].limits = [a,b]
+      # set minimum and maximum limit for the horizontal (X) axis; any of the limits can be nil to use auto setting
+      def x_limits(min, max)
+        @axes[:x1].limits = [min, max]
       end
 
-      def legend(x, options = {})
-        @legend = x
+      # set legend position and some of its options
+      # possible values for _position_:
+      #  :outer_next  -- outside the chart, upper right corner
+      #  :outer_below -- below the chart, centered
+      #
+      # available _options_ are:
+      #  :columns -- number of columns in the legend; -1 by default
+      def legend(position, options = {})
+        @legend = position
         @legend_columns = options[:columns] if options[:columns]
       end
 
+      # set number of columns in the legend
       def legend_columns(x)
         @legend_columns = x
       end
@@ -178,6 +192,9 @@ module Grafikon
         @width, @height, @scale_only_axis = w, h, scale_only_axis
       end
 
+      # create a new data series (appropriate Grafikon::Series subclass) and add it to the chart. _data_ is an array of [x,y] pairs
+      # all of the options are treated as writers for the series object, i.e {:x => y} translates to s.x = y
+      # optionally a block can be supplied, which is then evaluated within the context of the series object
       def add(data, opts = {})
         return false if data.empty?
         s = self.class.series_class.new(self)
@@ -186,10 +203,10 @@ module Grafikon
             s.send(:"#{key}=", val)
           end
         end
-        data.reject! do |x,y|
-          not x && y
+        s.data = data.reject do |x|
+          x.any?(&:nil?)
         end
-        s.data = data
+
         if block_given?
           s.instance_eval(&Proc.new)
         end
@@ -206,17 +223,6 @@ module Grafikon
 
       def pgf_draw str
         @pgf_commands << "\\draw " << str << ";\n"
-      end
-
-      def interpolate_in(xx, yy, x)
-        return nil if xx.min > x
-        return nil if xx.max < x
-        i1 = xx.index {|q| q >= x}
-        i2 = xx.rindex{|q| q <= x}
-        return [x, yy[i1]] if (i1 == i2)
-        x1, y1 = xx[i1], yy[i1]
-        x2, y2 = xx[i2], yy[i2]
-        [x, y1 + (x - x1) * (y2 - y1) / (x2 - x1)]
       end
 
       def add_diff(base, other, opts = {})
@@ -282,8 +288,6 @@ module Grafikon
           set << "legend pos=outer north east"
         when :outer_below
           set << "legend style={at={(0.5,-0.25)},anchor=north,legend columns=-1}"
-        when :outer_below_long
-          set << "legend style={at={(0.5,-0.25)},anchor=north,legend columns=#{@legend_columns}}"
         when nil
         else
           raise "? #{@legend}"
@@ -335,6 +339,9 @@ module Grafikon
         end
       end
       
+    protected
+            
+      # add colors and marks to all series in this chart
       def autocomplete
         i = 0
         @series.each do |s|
@@ -351,9 +358,21 @@ module Grafikon
         end
       end      
 
+      # an interpolation helper. For a given vector of x-values _xx_ and a vector of y-values _yy_, find an y-value corresponding to the x-value _x_
+      def interpolate_in(xx, yy, x)
+        return nil if xx.min > x
+        return nil if xx.max < x
+        i1 = xx.index {|q| q >= x}
+        i2 = xx.rindex{|q| q <= x}
+        return [x, yy[i1]] if (i1 == i2)
+        x1, y1 = xx[i1], yy[i1]
+        x2, y2 = xx[i2], yy[i2]
+        [x, y1 + (x - x1) * (y2 - y1) / (x2 - x1)]
+      end
+
     end
 
-    class Bar < Generic
+    class Bar < Base
 
       # :nodoc:
       def self.series_class
@@ -409,7 +428,7 @@ module Grafikon
       end
     end
 
-    class Line < Generic
+    class Line < Base
 
       # :nodoc:
       def self.series_class

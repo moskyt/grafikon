@@ -33,7 +33,7 @@ module Grafikon
       case @limits
       when nil, :auto
       when Array
-        set.size <= 2 or raise ArgumentError, "Limits are given, but more than two fields were entered"
+        set.size != 2 or raise ArgumentError, "Two fields must be given for axis limits"
         set << "#{type}min=#{@limits[0]}" if @limits[0]
         set << "#{type}max=#{@limits[1]}" if @limits[1]
       else

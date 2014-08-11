@@ -8,9 +8,12 @@ require_relative "grafikon/series"
 
 module Grafikon
 
-  def self.gnuplot_escape(s)
-    s.gsub("_", "\\_")
-    s.gsub("\"", "\\\"")
+  # set of gnuplot-related helpers
+  module Gnuplot
+    # escape a string for use in gnuplot (titles, labels...)
+    def self.escape(s)
+      s.gsub("_", "\\_").gsub("\"", "\\\"")
+    end
   end
 
 end

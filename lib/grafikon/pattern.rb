@@ -1,4 +1,5 @@
 module Grafikon
+  # superclass for chart fill patterns
   class Pattern
     
     # return the pattern as a pgfplots chunk (a wrapper)
@@ -10,6 +11,8 @@ module Grafikon
       }
     end
     
+    # factory for patterns
+    # the supported patterns are :grid, :hatch and :crosshatch
     def self.name(name)
       case name
       when nil
@@ -27,18 +30,21 @@ module Grafikon
     
   end
   
+  # hatch pattern (slash-like)
   class HatchPattern < Pattern
     def as_pgfplots
       super('north east lines')
     end
   end
   
+  # cross-hatch pattern (SW-NE and NW-SE lines)
   class CrossHatchPattern < Pattern
     def as_pgfplots
       super('crosshatch')
     end
   end
   
+  # cross-hatch pattern (N-E and W-E lines)
   class GridPattern < Pattern
     def as_pgfplots
       super('grid')

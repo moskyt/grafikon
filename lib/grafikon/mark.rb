@@ -117,7 +117,7 @@ module Grafikon
         'otimes'
       when :square
         'square'
-      when :Square
+      when :Square, :square_filled
         'square*'
       when :diamond
         'diamond'
