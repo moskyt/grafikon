@@ -59,14 +59,6 @@ module Grafikon
       def gnuplot_options
         opts = []
 
-        if @line_width && @line_width > 0 && @mark && !@mark.none?
-          opts << "with linespoints"
-        elsif @line_width && @line_width > 0
-          opts << "with lines"
-        else
-          opts << "with points"
-        end
-
         if @line_width && @line_width > 0
           opts << "lw #{@line_width}"
           if @line_type
@@ -79,7 +71,7 @@ module Grafikon
         opts << "title \"#{@title}\"" if title
         opts << "axes x1y2" if @axis == :secondary
 
-        opts * " "
+        opts
       end
 
       # build a CSV tempfile
@@ -182,6 +174,21 @@ module Grafikon
         super
         @data = @data.sort_by{|x| x.first}
       end
+      
+      def gnuplot_options
+        opts = ["using 1:2"] + super
+
+        if @line_width && @line_width > 0 && @mark && !@mark.none?
+          opts << "with linespoints"
+        elsif @line_width && @line_width > 0
+          opts << "with lines"
+        else
+          opts << "with points"
+        end
+        
+      
+        opts
+      end
 
       # return the data as a pgfplots chart chunk
       def as_pgfplots
@@ -255,6 +262,14 @@ module Grafikon
       def initialize(chart)
         super(chart)
         @pattern = nil
+      end
+      
+      def gnuplot_options
+        opts = ["using 2:xticlabels(1)"] + super
+
+        opts << "with histogram"
+
+        opts
       end
 
       # return the data as a pgfplots chunk

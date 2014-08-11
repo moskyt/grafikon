@@ -39,7 +39,7 @@ module Grafikon
         series_list = []
         @series.each_with_index do |s,i|
           s.check
-          series_list << %{"#{series_files[i].path}" using 1:2 #{s.gnuplot_options}}
+          series_list << %{"#{series_files[i].path}" #{s.gnuplot_options * " "}}
         end
 
         plot_string = ""
@@ -56,6 +56,10 @@ module Grafikon
           raise ArgumentError, "gnuplot format not given"
         else
           raise ArgumentError, "unknown gnuplot format: #{options[:format]}"
+        end
+        
+        gnuplot_options.each do |x|
+          plot_string << x << "\n"
         end
         
         if @title
@@ -281,6 +285,10 @@ module Grafikon
 
     protected
     
+      def gnuplot_options
+        []
+      end
+    
       def pgfplots_legend_options
         set = ["legend style={anchor=west}"]
         case @legend
@@ -379,11 +387,10 @@ module Grafikon
         Series::Bar
       end
       
-      # :nodoc:
-      def gnuplot_plot_type
-        raise "bar chart is not implemented for gnuplot"
+      def gnuplot_options
+        super + ["set style fill solid 1.0 border -1"]
       end
-
+      
       # plot the chart using pgfplots 
       def pgfplots(filename = nil)
         require 'guttapercha'
@@ -433,11 +440,6 @@ module Grafikon
       # :nodoc:
       def self.series_class
         Series::Line
-      end
-
-      # :nodoc:
-      def gnuplot_plot_type
-        "linespoints"
       end
 
       def pgfplots(filename = nil, opts = {})
