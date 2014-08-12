@@ -242,7 +242,7 @@ module Grafikon
         end
         k1 = base.map{|x| x[0]}
         k2 = other.map{|x| x[0]}
-        (k1 + k2).sort.each do |x|
+        (k1 + k2).sort.uniq.each do |x|
           if int
             v1 = interpolate_in(base.transpose.first, base.transpose.last, x)
             v2 = interpolate_in(other.transpose.first, other.transpose.last, x)
@@ -266,7 +266,7 @@ module Grafikon
         int = opts.delete(:interpolate)
         k1 = base.map{|x| x[0]}
         k2 = other.map{|x| x[0]}
-        (k1 + k2).sort.each do |x|
+        (k1 + k2).sort.uniq.each do |x|
           if int
             v1 = interpolate_in(base.transpose.first, base.transpose.last, x)
             v2 = interpolate_in(other.transpose.first, other.transpose.last, x)
