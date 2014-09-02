@@ -52,6 +52,8 @@ module Grafikon
           plot_string << "set terminal png enhanced medium size 1920,1440\n"
         when :eps
           plot_string << "set terminal postscript eps enhanced color dashed\n"
+        when :aqua  
+          plot_string << "set terminal x11\n"
         when nil
           raise ArgumentError, "gnuplot format not given"
         else
@@ -180,7 +182,10 @@ module Grafikon
       #  :columns -- number of columns in the legend; -1 by default
       def legend(position, options = {})
         @legend = position
-        @legend_columns = options[:columns] if options[:columns]
+        if options[:columns]
+          @legend_columns = options.delete(:columns)
+        end
+        options.empty? or raise ArgumentError, "Did not recognize the following options for legend: #{options.keys.inspect}"
       end
 
       # set number of columns in the legend
@@ -202,10 +207,13 @@ module Grafikon
       def add(data, opts = {})
         return false if data.empty?
         s = self.class.series_class.new(self)
-        opts.each do |key, val|
+        opts.keys.each do |key|
           if s.respond_to?(:"#{key}=")
-            s.send(:"#{key}=", val)
+            s.send(:"#{key}=", opts.delete(key))
           end
+        end
+        unless opts.keys.empty?
+          raise ArgumentError, "Did not understand series options #{opts.keys.inspect}"
         end
         s.data = data.reject do |x|
           x.any?(&:nil?)

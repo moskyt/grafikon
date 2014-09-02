@@ -2,7 +2,7 @@ require 'minitest/autorun'
 require 'minitest/unit'
 require 'minitest/pride'
 
-require 'grafikon'
+require_relative '../lib/grafikon'
 
 class TestBasic < MiniTest::Unit::TestCase
 
@@ -11,7 +11,7 @@ class TestBasic < MiniTest::Unit::TestCase
 
     Grafikon::Chart::Bar.new do
       add a, :title => 'linear', :mark => :x
-    end.pgfplots
+    end.gnuplot(:format => :aqua)
   end
   
   def test_line_diff

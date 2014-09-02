@@ -67,6 +67,7 @@ module Grafikon
         end
 
         opts << "lc #{@color.as_gnuplot}"
+        opts << "ps #{@mark_size/2.5}" unless @mark.none?
         opts << "pt #{@mark.as_gnuplot}" unless @mark.none?
         opts << "title \"#{@title}\"" if title
         opts << "axes x1y2" if @axis == :secondary
