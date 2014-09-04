@@ -84,6 +84,24 @@ module Grafikon
         unless sseries.empty?
           plot_string << "set y2tics\n"
         end
+        gset = []
+        {:x1 => 'x', :y1 => 'y', :y2 => 'y2'}.each do |axis, t|
+          unless sseries.empty? and axis == :y2
+            gset << case @axes[axis].grid
+              when nil
+                "no#{t}tics nom#{t}tics"
+              when :minor
+                "no#{t}tics m#{t}tics"
+              when :major
+                "#{t}tics nom#{t}tics"
+              when :both
+                "#{t}tics m#{t}tics"
+              else
+                raise "? #{@axes[axis].grid}"
+              end
+          end    
+        end
+        plot_string << "set grid #{gset * " "}\n"
         if @axes[:x1].title
           plot_string << "set xlabel \"#{Grafikon::Gnuplot::escape @axes[:x1].title}\" noenhanced\n"
         end
