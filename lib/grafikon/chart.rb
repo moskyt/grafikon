@@ -228,6 +228,8 @@ module Grafikon
         opts.keys.each do |key|
           if s.respond_to?(:"#{key}=")
             s.send(:"#{key}=", opts.delete(key))
+          elsif s.respond_to?(:"#{key}")
+            s.send(:"#{key}", opts.delete(key))
           end
         end
         unless opts.keys.empty?
@@ -257,7 +259,7 @@ module Grafikon
 
       def add_diff(base, other, opts = {})
         data = []
-        m = opts.delete(:multiplier) || 1.0
+        m = (opts.delete(:multiplier) || 1.0).to_f
         t = opts.delete(:tolerance) || 1e-5
         int = opts.delete(:interpolate)
         base.reject! do |x,y|
@@ -277,11 +279,21 @@ module Grafikon
             v2 = other.find{|q| (q[0]-x).abs < t}
           end
           if v1 and v2
-            v1 = v1[1]
-            v2 = v2[1]
-            data << [x, (v2 - v1)*m]
+            if v1.size == 2 and v2.size == 2
+              v1 = v1[1]
+              v2 = v2[1]
+              data << [x, (v2 - v1)*m]
+            else
+              xe1, ye1 = v1[2]||0.0, v1[3]||0.0
+              xe2, ye2 = v2[2]||0.0, v2[3]||0.0
+              v1 = v1[1]
+              v2 = v2[1]
+              data << [x, (v2 - v1)*m, (xe2 + xe1)*m, (ye2 + ye1)*m]
+            end
           end
         end
+        data.all?{|x| [2,4].include?(x.size)} or raise "Add-diff resulted in malformed data!"
+        data.all?{|x| x.all?{|y| Numeric === y or raise "Add-diff resulted in malformed data! #{x} -> #{y}"}}
         add(data, opts)
       end
 
@@ -321,6 +333,8 @@ module Grafikon
         when :outer_next
           set << "legend pos=outer north east"
         when :outer_below
+          set << "legend style={at={(0.5,-0.25)},anchor=north,legend columns=#{@legend_columns}}"
+        when :outer_below_long
           set << "legend style={at={(0.5,-0.25)},anchor=north,legend columns=-1}"
         when nil
         else

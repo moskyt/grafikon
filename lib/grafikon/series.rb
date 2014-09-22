@@ -233,7 +233,7 @@ module Grafikon
           else
             raise "Invalid y error bar direction [#{@y_error_bars[:direction]}]"
           end
-          eb = %{[error bars/.cd,y dir=#{d}]}
+          eb = %{[error bars/.cd,y dir=#{d},y explicit]}
         end
 
         if @y_error_bars or @x_error_bars
