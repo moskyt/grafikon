@@ -272,22 +272,22 @@ module Grafikon
         k2 = other.map{|x| x[0]}
         (k1 + k2).sort.uniq.each do |x|
           if int
-            v1 = interpolate_in(base.transpose.first, base.transpose.last, x)
-            v2 = interpolate_in(other.transpose.first, other.transpose.last, x)
+            v1 = interpolate_in(base.transpose[0], base.transpose[1], x)
+            v2 = interpolate_in(other.transpose[0], other.transpose[1], x)
           else
             v1 = base.find{ |q| (q[0]-x).abs < t}
             v2 = other.find{|q| (q[0]-x).abs < t}
           end
           if v1 and v2
             if v1.size == 2 and v2.size == 2
-              v1 = v1[1]
-              v2 = v2[1]
-              data << [x, (v2 - v1)*m]
+              y1 = v1[1]
+              y2 = v2[1]
+              data << [x, (y2 - y1)*m]
             else
-              xe1, ye1 = v1[2]||0.0, v1[3]||0.0
-              xe2, ye2 = v2[2]||0.0, v2[3]||0.0
-              v1 = v1[1]
-              v2 = v2[1]
+              xe1, ye1 = y1[2]||0.0, y1[3]||0.0
+              xe2, ye2 = y2[2]||0.0, y2[3]||0.0
+              y1 = v1[1]
+              y2 = v2[1]
               data << [x, (v2 - v1)*m, (xe2 + xe1)*m, (ye2 + ye1)*m]
             end
           end
@@ -306,8 +306,8 @@ module Grafikon
         k2 = other.map{|x| x[0]}
         (k1 + k2).sort.uniq.each do |x|
           if int
-            v1 = interpolate_in(base.transpose.first, base.transpose.last, x)
-            v2 = interpolate_in(other.transpose.first, other.transpose.last, x)
+            v1 = interpolate_in(base.transpose[0], base.transpose[1], x)
+            v2 = interpolate_in(other.transpose[0], other.transpose[1], x)
           else
             v1 = base.find{ |q| (q[0]-x).abs < t}
             v2 = other.find{|q| (q[0]-x).abs < t}
