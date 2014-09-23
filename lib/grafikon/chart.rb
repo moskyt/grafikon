@@ -279,16 +279,14 @@ module Grafikon
             v2 = other.find{|q| (q[0]-x).abs < t}
           end
           if v1 and v2
+            y1 = v1[1]
+            y2 = v2[1]
             if v1.size == 2 and v2.size == 2
-              y1 = v1[1]
-              y2 = v2[1]
               data << [x, (y2 - y1)*m]
             else
-              xe1, ye1 = y1[2]||0.0, y1[3]||0.0
-              xe2, ye2 = y2[2]||0.0, y2[3]||0.0
-              y1 = v1[1]
-              y2 = v2[1]
-              data << [x, (v2 - v1)*m, (xe2 + xe1)*m, (ye2 + ye1)*m]
+              xe1, ye1 = v1[2]||0.0, v1[3]||0.0
+              xe2, ye2 = v2[2]||0.0, v2[3]||0.0
+              data << [x, (y2 - y1)*m, (xe2 + xe1)*m, (ye2 + ye1)*m]
             end
           end
         end
