@@ -34,6 +34,24 @@ class TestBasic < MiniTest::Unit::TestCase
     puts c.gnuplot(:format => :png)
   end
 
+  def test_error_chart
+    b = (1..6).map{|x| [x,x**1.5,x**0.5]}
+
+    c = Grafikon::Chart::Line.new do
+      title "an exam_ple"
+      size :fill, '8cm'
+      add b, :title => 'linear-and-half', :color => :gray, :mark => :Circle, :line_type => 2, y_error_bars: {direction: :both}
+    end
+
+    # pgfplots string
+    c.pgfplots
+ 
+    # gnuplot string
+    c.gnuplot(:format => :png)
+    # run gnuplot 
+    c.gnuplot(:format => :png, :output => 'test_error_chart.png')
+  end
+
   def test_line_chart
 
     a = (1..6).map{|x| [x,x]}
