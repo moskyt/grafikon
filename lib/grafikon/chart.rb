@@ -77,6 +77,8 @@ module Grafikon
           plot_string << "set key outside top right\n"
         when :outer_below
           plot_string << "set key below\n"
+        when :inner
+          plot_string << "set key ins right top\n"
         when nil
           plot_string << "set nokey\n"
         else
