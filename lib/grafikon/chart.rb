@@ -45,7 +45,11 @@ module Grafikon
         plot_string = ""
         case options[:format]
         when :png
-          plot_string << "set terminal png enhanced medium size 640,480\n"
+          if @width and @height
+            plot_string << "set terminal png enhanced medium size #{@width},#{@height}\n"
+          else
+            plot_string << "set terminal png enhanced medium size 640,480\n"
+          end
         when :png_medium
           plot_string << "set terminal png enhanced medium size 1280,960\n"
         when :png_large
