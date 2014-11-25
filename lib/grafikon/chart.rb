@@ -82,7 +82,7 @@ module Grafikon
         when nil
           plot_string << "set nokey\n"
         else
-          raise "? #{@legend}"
+          raise "Unknown legend type: #{@legend}"
         end
 
         pseries, sseries = * @series.partition{|x| x.axis == :primary}
