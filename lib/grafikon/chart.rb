@@ -79,6 +79,8 @@ module Grafikon
           plot_string << "set key outside top right\n"
         when :top_right
           plot_string << "set key inside top right\n"
+        when :bottom_right
+          plot_string << "set key inside bottom right\n"
         when :outer_below
           plot_string << "set key below\n"
         when :inner
@@ -211,6 +213,7 @@ module Grafikon
       #  :outer_next  -- outside the chart, upper right corner
       #  :outer_below -- below the chart, centered
       #  :top_right   -- inside the chart, upper right corner
+      #  :bottom_right -- inside the chart, bottom right corner
       #
       # available _options_ are:
       #  :columns -- number of columns in the legend; -1 by default
@@ -356,6 +359,8 @@ module Grafikon
           set << "legend pos=outer north east"
         when :top_right
           set << "legend pos=north east"
+        when :bottom_right
+          set << "legend pos=south east"
         when :outer_below
           set << "legend style={at={(0.5,-0.25)},anchor=north,legend columns=#{@legend_columns}}"
         when :outer_below_long
