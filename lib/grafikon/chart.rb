@@ -1,6 +1,6 @@
 module Grafikon
   module Chart
-    
+
     # generic chart class
     class Base
 
@@ -10,13 +10,15 @@ module Grafikon
         @axes = {
           :x1 => Axis.new(:x,self),
           :y1 => Axis.new(:y,self),
-          :y2 => Axis.new(:y,self)
+          :y2 => Axis.new(:y,self),
+          :z1 => Axis.new(:z,self)
         }
         @series = []
         @legend = :outer_next
         @legend_columns = -1
         @x_grid = nil
         @y_grid = :major
+        @z_grid = :major
         @scale_only_axis = true
         @extra_pgf_options = []
         @pgf_commands = ''
@@ -31,7 +33,7 @@ module Grafikon
       # plot the chart using gnuplot
       # options can be:
       #   :format -- output format (gnuplot terminal), can be :eps or :png (640x480), :png_medium (1280x960), :png_large (1920x1440)
-      #   :output -- output filename; if given, gnuplot is executed -- otherwise the gnuplot input deck is returned with no action taken 
+      #   :output -- output filename; if given, gnuplot is executed -- otherwise the gnuplot input deck is returned with no action taken
       def gnuplot(options)
         autocomplete
         @series.each(&:check)
@@ -52,18 +54,18 @@ module Grafikon
           plot_string << "set terminal png enhanced medium size 1920,1440\n"
         when :eps
           plot_string << "set terminal postscript eps enhanced color dashed\n"
-        when :aqua  
+        when :aqua
           plot_string << "set terminal x11\n"
         when nil
           raise ArgumentError, "gnuplot format not given"
         else
           raise ArgumentError, "unknown gnuplot format: #{options[:format]}"
         end
-        
+
         gnuplot_options.each do |x|
           plot_string << x << "\n"
         end
-        
+
         if @title
           plot_string << "set title '#{Grafikon::Gnuplot::escape @title}' noenhanced\n"
         end
@@ -71,6 +73,8 @@ module Grafikon
         case @legend
         when :outer_next
           plot_string << "set key outside top right\n"
+        when :top_right
+          plot_string << "set key inside top right\n"
         when :outer_below
           plot_string << "set key below\n"
         when nil
@@ -137,10 +141,11 @@ module Grafikon
         @axes[:y2].grid = y
       end
 
-      def axes(xtitle, ytitle, y2title = nil)
+      def axes(xtitle, ytitle, y2title = nil, ztitle = nil)
         x_axis(xtitle)
         y_axis(ytitle)
         y2_axis(y2title)
+        z_axis(ztitle)
       end
 
       # set title for the horizontal (X) axis
@@ -151,6 +156,10 @@ module Grafikon
       # set title for the primary vertical (Y) axis
       def y_axis(ytitle)
         @axes[:y1].title = ytitle
+      end
+
+      def z_axis(ztitle)
+        @axes[:z1].title = ztitle
       end
 
       # set title for the secondary vertical (Y2) axis
@@ -177,6 +186,7 @@ module Grafikon
       # possible values for _position_:
       #  :outer_next  -- outside the chart, upper right corner
       #  :outer_below -- below the chart, centered
+      #  :top_right   -- inside the chart, upper right corner
       #
       # available _options_ are:
       #  :columns -- number of columns in the legend; -1 by default
@@ -188,6 +198,10 @@ module Grafikon
         options.empty? or raise ArgumentError, "Did not recognize the following options for legend: #{options.keys.inspect}"
       end
 
+      def z_limits(a,b)
+        @axes[:z1].limits = [a,b]
+      end
+
       # set number of columns in the legend
       def legend_columns(x)
         @legend_columns = x
@@ -195,6 +209,10 @@ module Grafikon
 
       def x_ticks(set)
         @axes[:x1].ticks = set
+      end
+
+      def z_ticks(set)
+        @axes[:z1].ticks = set
       end
 
       def size(w, h, scale_only_axis = true)
@@ -226,7 +244,7 @@ module Grafikon
       end
 
       def pgf_node str
-        @pgf_commands << "\\node " << str << ";\n"  
+        @pgf_commands << "\\node " << str << ";\n"
       end
 
       def pgf_fill str
@@ -292,16 +310,18 @@ module Grafikon
       end
 
     protected
-    
+
       def gnuplot_options
         []
       end
-    
+
       def pgfplots_legend_options
         set = ["legend style={anchor=west}"]
         case @legend
         when :outer_next
           set << "legend pos=outer north east"
+        when :top_right
+          set << "legend pos=north east"
         when :outer_below
           set << "legend style={at={(0.5,-0.25)},anchor=north,legend columns=-1}"
         when nil
@@ -313,7 +333,7 @@ module Grafikon
 
       def size_options
         require 'guttapercha'
-        
+
         options = @extra_pgf_options
         options << "scale only axis" if @scale_only_axis
         if @title and !@title.empty?
@@ -354,9 +374,9 @@ module Grafikon
           return s
         end
       end
-      
+
     protected
-            
+
       # add colors and marks to all series in this chart
       def autocomplete
         i = 0
@@ -372,7 +392,7 @@ module Grafikon
             i += 1
           end
         end
-      end      
+      end
 
       # an interpolation helper. For a given vector of x-values _xx_ and a vector of y-values _yy_, find an y-value corresponding to the x-value _x_
       def interpolate_in(xx, yy, x)
@@ -394,15 +414,15 @@ module Grafikon
       def self.series_class
         Series::Bar
       end
-      
+
       def gnuplot_options
         super + ["set style fill solid 1.0 border -1"]
       end
-      
-      # plot the chart using pgfplots 
+
+      # plot the chart using pgfplots
       def pgfplots(filename = nil)
         require 'guttapercha'
-        
+
         autocomplete
         options = []
 
@@ -452,7 +472,7 @@ module Grafikon
 
       def pgfplots(filename = nil, opts = {})
         require 'guttapercha'
-        
+
         autocomplete
         options = []
         options << "compat=newest"
@@ -468,7 +488,7 @@ module Grafikon
           s = %{
             \\begin{tikzpicture}}
         end
-        
+
         s << "\\tikzstyle{every node}=[font=\\#{opts[:font]}]" if opts[:font]
 
         @series.each do |series|

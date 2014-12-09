@@ -1,6 +1,6 @@
 module Grafikon
   module Series
-    # general chart series class 
+    # general chart series class
     class Base
       # series data (array of points - 2- or 4-element arrays)
       attr_accessor :data
@@ -45,7 +45,7 @@ module Grafikon
         Array === @data or raise ArgumentError, "Series data have to be an array"
         @data.each do |point|
           Array === point or raise ArgumentError, "Series data point has to be an array"
-          point.size == 2 or point.size == 4 or raise ArgumentError, "Series data point has to be an array with 2 or 4 elements"
+          point.size == 2 or point.size == 3 or point.size == 4 or raise ArgumentError, "Series data point has to be an array with 2 or 4 elements"
         end
         if Symbol === @color
           @color = Grafikon::Color::name(@color)
@@ -100,6 +100,10 @@ module Grafikon
         @data.map{|x| x[1]}
       end
 
+      def z_values
+        @data.map{|x| x[2]}
+      end
+
       # convert the series to a step function (original data are in the centers of the steps)
       def stepify
         return if @data.empty?
@@ -119,7 +123,7 @@ module Grafikon
       # prune the series; within each of the _n_ intervals choose the minimum and maximum value and make a bounding plot with (x1,min) and (x2,max) points for each interval
       #
       # the _opts_ hash can contain the following options:
-      # 
+      #
       # :remove_outliers -- if true, removes all points with y outside the 2-sigma interval
       # :select -- can be :min or :max to select the minimum or maximum point, respectively
       def prune(n, opts)
@@ -175,7 +179,7 @@ module Grafikon
         super
         @data = @data.sort_by{|x| x.first}
       end
-      
+
       def gnuplot_options
         opts = ["using 1:2"] + super
 
@@ -186,8 +190,8 @@ module Grafikon
         else
           opts << "with points"
         end
-        
-      
+
+
         opts
       end
 
@@ -243,11 +247,19 @@ module Grafikon
             };
           }
         else
-          s = %{
-            \\addplot[#{options * ','}] plot#{eb} coordinates {
-              #{@data.map{|q| "(%s,%.5e)" % [q[0].to_s, q[1].to_f]} * "\n"}
-            };
-          }
+          if @data[0].size == 2
+            s = %{
+              \\addplot[#{options * ','}] plot#{eb} coordinates {
+                #{@data.map{|q| "(%s,%.5e)" % [q[0].to_s, q[1].to_f]} * "\n"}
+              };
+            }
+          elsif @data[0].size == 3
+            s = %{
+              \\addplot3[#{options * ','}] plot#{eb} coordinates {
+                #{@data.map{|q| "(%s,%.5e,%.5e)" % [q[0].to_s, q[1].to_f, q[2].to_f]} * "\n"}
+              };
+            }
+          end
         end
         s
       end
@@ -259,12 +271,12 @@ module Grafikon
 
       # pattern for bar charts
       attr_accessor :pattern
-      
+
       def initialize(chart)
         super(chart)
         @pattern = nil
       end
-      
+
       def gnuplot_options
         opts = ["using 2:xticlabels(1)"] + super
 
