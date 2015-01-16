@@ -31,6 +31,25 @@ module Grafikon
       c.set_rgb(r, g, b)
       c
     end
+
+    # constructor-by-RGB
+    def self.rgb_string(s)
+      c = new
+      s = s[1..-1] if s[0..0] == '#'
+      if s.size == 3
+        rs = s[0..0]+s[0..0]
+        gs = s[1..1]+s[1..1]
+        bs = s[2..2]+s[2..2]
+      elsif s.size == 6
+        rs = s[0..1]
+        gs = s[2..3]
+        bs = s[4..5]
+      else
+        raise ArgumentError, "Invalid color string [#{s}]"
+      end
+      c.set_rgb(rs.to_i(16), gs.to_i(16), bs.to_i(16))
+      c
+    end
     
     # constructor-by-name
     def self.name(color_name)
