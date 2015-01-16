@@ -47,6 +47,9 @@ module Grafikon
           Array === point or raise ArgumentError, "Series data point has to be an array"
           point.size == 2 or point.size == 3 or point.size == 4 or raise ArgumentError, "Series data point has to be an array with 2 or 4 elements"
         end
+        if String === @color
+          @color = Grafikon::Color::name(@color)
+        end
         if Symbol === @color
           @color = Grafikon::Color::name(@color)
         end
