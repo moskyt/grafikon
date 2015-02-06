@@ -184,15 +184,25 @@ module Grafikon
       end
 
       def gnuplot_options
-        opts = ["using 1:2"] + super
 
-        if @line_width && @line_width > 0 && @mark && !@mark.none?
-          opts << "with linespoints"
+        pt = if @line_width && @line_width > 0 && @mark && !@mark.none?
+          "linespoints"
         elsif @line_width && @line_width > 0
-          opts << "with lines"
+          "lines"
         else
-          opts << "with points"
+          "points"
         end
+
+        if @y_error_bars and @y_error_bars[:direction] == :both
+          if pt.include? 'lines'
+            opts = ["using 1:2:3", "with errorlines"] + super
+          else
+            opts = ["using 1:2:3", "with yerrorbars"] + super
+          end
+        else
+          opts = ["using 1:2", "with #{pt}"] + super
+        end
+
 
 
         opts

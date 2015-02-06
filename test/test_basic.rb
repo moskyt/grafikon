@@ -20,7 +20,7 @@ class TestBasic < MiniTest::Unit::TestCase
 
     c = Grafikon::Chart::Line.new do
       title "an exam_ple"
-      size :fill, '8cm'
+      #size :fill, '8cm'
       legend :outer_below
       y_limits 0, 20
       add a, :title => 'linear', :mark => :x
@@ -38,8 +38,8 @@ class TestBasic < MiniTest::Unit::TestCase
     b = (1..6).map{|x| [x,x**1.5,x**0.5]}
 
     c = Grafikon::Chart::Line.new do
-      title "an exam_ple"
-      size :fill, '8cm'
+      title "an exam_ple with errrrrors"
+      #size :fill, '8cm'
       add b, :title => 'linear-and-half', :color => :gray, :mark => :Circle, :line_type => 2, y_error_bars: {direction: :both}
     end
 
