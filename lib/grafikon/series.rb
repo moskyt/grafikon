@@ -85,7 +85,7 @@ module Grafikon
         file = Tempfile.new('series_csv')
 
         @data.each do |ary|
-          file.write((ary.map{|x| "%.5e" % x} * " ") + "\n")
+          file.write((ary.map{|x| x} * " ") + "\n") #"%.5e" % x
         end
 
         file.close

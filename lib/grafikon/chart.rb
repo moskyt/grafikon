@@ -345,6 +345,21 @@ module Grafikon
         end
         add(data, opts)
       end
+      
+      def add_histogram(data, opts = {})
+        min = opts.delete(:min) || data.min
+        max = opts.delete(:max) || data.max
+        bins = opts.delete(:bins) || 20
+        w = (max - min) / bins.to_f
+        hdata = (0...bins).map do |i|
+          x1, x2 = min + i*w, min + (i+1)*w
+          x2 += w*1e-3 if i == bins-1
+          x = (x1 + x2) / 2.0
+          y = data.count{|q| q >= x1 and q < x2}
+          [x.round(2), y]
+        end
+        add(hdata, opts)
+      end
 
     protected
 
