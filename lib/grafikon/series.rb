@@ -20,6 +20,8 @@ module Grafikon
       attr_accessor :pgf_options
       # series label
       attr_writer :title
+      # fill the area under series
+      attr_writer :fill
 
       def initialize(chart)
         @title = nil
@@ -34,6 +36,7 @@ module Grafikon
         @x_error_bars = nil
         @y_error_bars = nil
         @axis = :primary
+        @fill = nil
       end
 
       #return the series label (or a three-dash string if no title is given)
@@ -185,7 +188,9 @@ module Grafikon
 
       def gnuplot_options
 
-        pt = if @line_width && @line_width > 0 && @mark && !@mark.none?
+        pt = if @fill
+          "filledcurves"
+        elsif @line_width && @line_width > 0 && @mark && !@mark.none?
           "linespoints"
         elsif @line_width && @line_width > 0
           "lines"
