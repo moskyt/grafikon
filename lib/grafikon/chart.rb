@@ -43,6 +43,10 @@ module Grafikon
             @series[si].data[xi][1] = acc
           end
         end
+        (0...@series.size).reverse_each do |si|
+          @series[si].data = [[x.min,0]] + @series[si].data + [[x.max,0]]
+        end
+
       end
 
       # plot the chart using gnuplot

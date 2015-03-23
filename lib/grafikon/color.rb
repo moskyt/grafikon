@@ -47,7 +47,7 @@ module Grafikon
       else
         raise ArgumentError, "Invalid color string [#{s}]"
       end
-      c.set_rgb(rs.to_i(16), gs.to_i(16), bs.to_i(16))
+      c.set_rgb(rs.to_i(16)/255.0, gs.to_i(16)/255.0, bs.to_i(16)/255.0)
       c
     end
     
