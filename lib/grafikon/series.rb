@@ -56,6 +56,9 @@ module Grafikon
         if Symbol === @color
           @color = Grafikon::Color::name(@color)
         end
+        if Fixnum === @color
+          @color = Grafikon::Color::ord(@color)
+        end
         if Symbol === @mark
           @mark = Grafikon::Mark::new(@mark)
         end

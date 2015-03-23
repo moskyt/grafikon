@@ -29,6 +29,21 @@ module Grafikon
 
         instance_eval(&block) if block_given?
       end
+      
+      def sum_to_stack
+        x = nil
+        @series.each do |s|
+          x ||= s.x_values
+          x == s.x_values or raise "X-value mismatch; not willing to perform stacking."
+        end
+        (0...x.size).each do |xi|
+          acc = 0
+          (0...@series.size).reverse_each do |si|
+            acc += @series[si].data[xi][1]
+            @series[si].data[xi][1] = acc
+          end
+        end
+      end
 
       # plot the chart using gnuplot
       # options can be:
