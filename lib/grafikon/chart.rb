@@ -31,12 +31,15 @@ module Grafikon
       end
       
       def sum_to_stack
-        x = nil
+        xx = nil
         @series.each do |s|
-          x ||= s.x_values
-          x == s.x_values or raise "X-value mismatch; not willing to perform stacking."
+          xx ||= s.x_values
+          xx &= s.x_values
         end
-        (0...x.size).each do |xi|
+        @series.each do |s|
+          s.data.reject!{|q| !xx.include? q[0]}
+        end      
+        (0...xx.size).each do |xi|
           acc = 0
           (0...@series.size).reverse_each do |si|
             acc += @series[si].data[xi][1]
@@ -44,7 +47,7 @@ module Grafikon
           end
         end
         (0...@series.size).reverse_each do |si|
-          @series[si].data = [[x.min,0]] + @series[si].data + [[x.max,0]]
+          @series[si].data = [[xx.min,0]] + @series[si].data + [[xx.max,0]]
         end
 
       end

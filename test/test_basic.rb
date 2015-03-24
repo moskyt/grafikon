@@ -13,6 +13,31 @@ class TestBasic < MiniTest::Unit::TestCase
       add a, :title => 'linear', :mark => :x
     end.gnuplot(:format => :aqua)
   end
+
+  def test_stack_when_ok
+    a = (1..6).map{|x| [x,x]}
+    b = (1..6).map{|x| [x,x ** 1.5]}
+
+    g = Grafikon::Chart::Line.new do
+      add a
+      add b
+      sum_to_stack
+    end
+    puts g.pgfplots
+  end
+
+  def test_stack_when_not_ok
+    a = (1..6).map{|x| [x,x]}
+    a.delete_at 4
+    b = (1..6).map{|x| [x,x ** 1.5]}
+
+    g = Grafikon::Chart::Line.new do
+      add a
+      add b
+      sum_to_stack
+    end
+    puts g.pgfplots
+  end
   
   def test_line_diff
     a = (1..6).map{|x| [x,x]}

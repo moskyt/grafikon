@@ -1,4 +1,4 @@
 module Grafikon
   # library version
-  VERSION = "0.5.7.1"
+  VERSION = "0.5.8"
 end
